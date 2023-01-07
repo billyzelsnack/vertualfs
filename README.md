@@ -1,6 +1,6 @@
-# Simple C++ onshape STL export
+# vertualfs
 
-A minimal implementation of an onshape STL exporter written in c++. It supports two options for onshape authorization.
+A VERsioned virTUAL FileSystem library.
 
 # Requirements
 * Windows 10 or 11
