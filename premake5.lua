@@ -1,4 +1,5 @@
 local vcpkgdir="c:/vcpkg/"
+local reposdir="c:/repos/"
 
 workspace "vertualfs"
 
@@ -42,7 +43,12 @@ workspace "vertualfs"
       language "C++"
       cppdialect "C++20"
       defines { }
-      includedirs { vcpkgdir.."installed/x64-windows/include", "$(ProjectDir)../include" }
+      includedirs 
+      { 
+         vcpkgdir.."installed/x64-windows/include", 
+         "$(ProjectDir)../include",
+         reposdir.."cxxopts/include" 
+      }
       
       files { "src-tool/*.hpp", "src-tool/*.cpp" }
       objdir "%{_ACTION}/%{cfg.buildcfg}/int_x64/"

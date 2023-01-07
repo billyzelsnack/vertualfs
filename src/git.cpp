@@ -9,6 +9,8 @@ static bool started = false;
 
 bool git_startup()
 {
+	if (started) { return true; }
+
 	printf("git_startup\n");
 
 	if (started) { return true; }
@@ -70,8 +72,10 @@ void git_repo_close(git_repository* repo)
 
 void git_shutdown()
 {
+	if (!started) { return; }
+
 	printf("git_shutdown\n");
-	if (started) { git_libgit2_shutdown(); }
+	git_libgit2_shutdown();
 }
 
 
