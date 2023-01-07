@@ -13,6 +13,7 @@ A VERsioned virTUAL FileSystem library.
 * vcpkg install cppcodec:x64-windows
 * vcpkg install curlpp:x64-windows
 * vcpkg install nlohmann-json:x64-windows
+* vcpkg install libgit2-json:x64-windows
 * Change the vckgdir variable at the top of premake5.lua to match your vcpkg directory.
 * In the directory where premake5.lua is located run: premake5 vs2022
 * Open vs2022/vertualfs.sln in Visual Studio 2022

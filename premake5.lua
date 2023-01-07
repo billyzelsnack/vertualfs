@@ -24,7 +24,7 @@ workspace "vertualfs"
       defines { }
       includedirs { vcpkgdir.."installed/x64-windows/include", "$(ProjectDir)../include" }
       
-      files { "src/*.hpp", "src/*.cpp" }
+      files { "include/*.hpp", "src/*.hpp", "src/*.cpp" }
       objdir "%{_ACTION}/%{cfg.buildcfg}/int_x64/"
       targetdir "%{_ACTION}/%{cfg.buildcfg}/out_x64/"
       debugdir  "%{_ACTION}/%{cfg.buildcfg}/out_x64/"
@@ -48,11 +48,12 @@ workspace "vertualfs"
       objdir "%{_ACTION}/%{cfg.buildcfg}/int_x64/"
       targetdir "%{_ACTION}/%{cfg.buildcfg}/out_x64/"
       debugdir  "%{_ACTION}/%{cfg.buildcfg}/out_x64/"
-      links { "vertualfs", "curlpp", "libcurl", "zlib" }
+      links { "vertualfs", "git2", "pcre", "zlib" }
 
       postbuildcommands 
       {
+         "{COPY} "..vcpkgdir.."installed/x64-windows/bin/git2.dll %{cfg.targetdir}",
+         "{COPY} "..vcpkgdir.."installed/x64-windows/bin/pcre.dll %{cfg.targetdir}",
+         "{COPY} "..vcpkgdir.."installed/x64-windows/bin/zlib1.dll %{cfg.targetdir}",
       }
-
-
 
