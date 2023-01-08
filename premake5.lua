@@ -47,19 +47,20 @@ workspace "vertualfs"
       { 
          vcpkgdir.."installed/x64-windows/include", 
          "$(ProjectDir)../include",
-         reposdir.."cxxopts/include" 
+         reposdir.."cxxopts/include", 
       }
       
       files { "src-tool/*.hpp", "src-tool/*.cpp" }
       objdir "%{_ACTION}/%{cfg.buildcfg}/int_x64/"
       targetdir "%{_ACTION}/%{cfg.buildcfg}/out_x64/"
       debugdir  "%{_ACTION}/%{cfg.buildcfg}/out_x64/"
-      links { "vertualfs", "git2", "pcre", "zlib" }
+      links { "vertualfs", "git2", "pcre", "zlib", "easyloggingpp.lib" }
 
       postbuildcommands 
       {
          "{COPY} "..vcpkgdir.."installed/x64-windows/bin/git2.dll %{cfg.targetdir}",
          "{COPY} "..vcpkgdir.."installed/x64-windows/bin/pcre.dll %{cfg.targetdir}",
          "{COPY} "..vcpkgdir.."installed/x64-windows/bin/zlib1.dll %{cfg.targetdir}",
+         "{COPY} "..vcpkgdir.."installed/x64-windows/bin/fmt.dll %{cfg.targetdir}",
       }
 

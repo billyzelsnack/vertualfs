@@ -8,7 +8,7 @@
 
 
 
-//-- todo: get rid of this wrap and put the git2 calls inside of FileSystem
+//-- todo: get rid of this wrap and put the git2 calls inside of FileSystem?
 
 
 bool git_startup();

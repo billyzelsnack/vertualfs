@@ -1,8 +1,11 @@
 
 #include <cstdio>
+#include <easylogging++.h>
 
 #include "git.hpp"
 #include "vertualfs.hpp"
+
+
 
 static bool started = false;
 
@@ -18,11 +21,11 @@ vertualfs::FileSystem::FileSystem(git_repository* repo) : repo(repo)
 	}
 }
 
-bool vertualfs::FileSystem::list(std::vector<std::pair<std::string, bool>>& out_listing)
+bool vertualfs::FileSystem::listing(std::vector<std::pair<std::string, bool>>& out_listing)
 {
 	out_listing.clear();
 
-	printf("list\n");
+	printf("listing\n");
 
 	out_listing.push_back({ "afile",false });
 	out_listing.push_back({ "adir",true });
@@ -53,7 +56,8 @@ bool vertualfs_startup()
 {
 	if(started){ return true; }
 
-	printf("vertualfs_startup\n");
+	//printf("vertualfs_startup\n");
+	LOG(INFO) << "vertualfs_startup";
 	if(!git_startup()){return false;}
 
 	started = true;

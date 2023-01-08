@@ -20,7 +20,7 @@ private:
 
 public:
 
-	bool list(std::vector<std::pair<std::string, bool>>& out_files);
+	bool listing(std::vector<std::pair<std::string, bool>>& out_files);
 
 	static FileSystem* create(const std::string& localfullpath);
 

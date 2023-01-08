@@ -4,9 +4,16 @@
 #include <string>
 #include <vector>
 
-#include <vertualfs.hpp>
-#include <cxxopts.hpp>
+#include <easylogging++.h>
 
+//#include <lyra/lyra.hpp>
+#include <lyra/cli.hpp>
+#include <lyra/opt.hpp>
+
+#include <vertualfs.hpp>
+
+
+INITIALIZE_EASYLOGGINGPP
 
 
 bool vertualfstool_startup()
@@ -28,43 +35,42 @@ void vertualfstool_shutdown()
 
 int main(int argc, char** argv)
 {
-    cxxopts::Options options( "vertualfstool", "vertualfstool description");
-    options.add_options()
-    ("m,mount", "mount", cxxopts::value<std::string>())
-    ("l,list", "list", cxxopts::value<bool>()->default_value("false"))
-    ("h,help", "Print usage")
-    ;
-    options.custom_help("<--mount <localpath>> [OPTION...]");
-    auto result = options.parse(argc, argv);
-    if (result.count("help"))
-    {
-        printf("%s", options.help().c_str());
-        return EXIT_SUCCESS;
-    }
+    LOG(INFO) << "vertualfs";
 
     std::string mount = "c:/repos/flatbuffers";
-    if (result.count("mount")) { mount = result["mount"].as<std::string>(); }
-    if (mount.empty()) { return EXIT_SUCCESS; }
 
+    bool help = false;
+    bool listing=false;
+    auto cli = lyra::cli()
+        | lyra::opt(help)["-h"]["--help"]("display help")
+        | lyra::opt(listing) ["-l"]["--listing"]("display listing")
+        | lyra::opt(mount,"mount")["-m"]["--mount"]("set mount");    
+    auto result = cli.parse({ argc, argv });
+    if(!result)
+    {
+        std::cerr << "Error in command line: " << result.message() << std::endl;
+        std::cout << "help = " << (help ? "true" : "false") << "\n";
+        std::cout << "listing = " << (listing ? "true" : "false") << "\n";
+        std::cout << "mount = " << mount << "\n";
+        return EXIT_FAILURE;
+    }
+ 
+    if (mount.empty()) { return EXIT_FAILURE; }
 
+    
     printf("vertualfstool\n");
-
     if(!vertualfstool_startup()){return EXIT_FAILURE;}
-
-
     vertualfs::FileSystem* fs = vertualfs::FileSystem::create(mount);
     if(fs!=nullptr)
     {
-        if (result["list"].as<bool>())
+        if (listing)
         {
             std::vector<std::pair<std::string, bool>> listing;
-            if (fs->list(listing))
+            if (fs->listing(listing))
             {
             }
         }
     }
-
-
     vertualfstool_shutdown();
 
     return EXIT_SUCCESS;

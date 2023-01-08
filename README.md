@@ -11,9 +11,9 @@ VERsioned virTUAL FileSystem library and command-line tool.
 
 # Installation
 * vcpkg install libgit2-json:x64-windows
-* Change vckgdir variable at top of premake5.lua to match your vcpkg directory.
-* git clone https://github.com/jarro2783/cxxopts.git
-* Change reposdir variable at top of premake5.lua to match your gitdir directory.
+* vcpkg install bfgroup-lyra:x64-windows
+* vcpkg install easyloggingpp:x64-windows
+* Change vcpkgdir and reposdir at top of premake5.lua to match yours.
 * premake5 vs2022
 * vs2022/vertualfs.sln
 * F5 to build and run.
