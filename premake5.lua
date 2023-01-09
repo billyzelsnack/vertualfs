@@ -26,7 +26,6 @@ workspace "vertualfs"
       includedirs 
       { 
          vcpkgdir.."installed/x64-windows/include", "$(ProjectDir)../include",
-         reposdir.."uuid_v4"
       }
       
       files { "include/*.hpp", "src/*.hpp", "src/*.cpp" }
@@ -65,6 +64,5 @@ workspace "vertualfs"
          "{COPY} "..vcpkgdir.."installed/x64-windows/bin/git2.dll %{cfg.targetdir}",
          "{COPY} "..vcpkgdir.."installed/x64-windows/bin/pcre.dll %{cfg.targetdir}",
          "{COPY} "..vcpkgdir.."installed/x64-windows/bin/zlib1.dll %{cfg.targetdir}",
-         "{COPY} "..vcpkgdir.."installed/x64-windows/bin/fmt.dll %{cfg.targetdir}",
       }
 

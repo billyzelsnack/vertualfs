@@ -10,7 +10,7 @@ VERsioned virTUAL FileSystem library and command-line tool.
 * premake5 https://premake.github.io/
 
 # Installation
-* vcpkg install libgit2-json:x64-windows
+* vcpkg install libgit2:x64-windows
 * vcpkg install bfgroup-lyra:x64-windows
 * vcpkg install easyloggingpp:x64-windows
 * Change vcpkgdir and reposdir at top of premake5.lua to match yours.
