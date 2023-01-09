@@ -7,6 +7,14 @@
 static bool started = false;
 
 
+void git_shutdown()
+{
+	if (!started) { return; }
+
+	printf("git_shutdown\n");
+	git_libgit2_shutdown();
+}
+
 bool git_startup()
 {
 	if (started) { return true; }
@@ -21,17 +29,26 @@ bool git_startup()
 	return true;
 }
 
-bool git_repo_open(git_repository** repo, const std::string& path)
+bool git_repo_clone(const std::string& url, const std::string& path, struct git_repository*& out_repo)
 {
-	if (0 == git_repository_open(repo, path.c_str())) { return true; }
+	out_repo = nullptr;
+	if(0==git_clone(&out_repo, url.c_str(), path.c_str(), NULL)){ return true; }
 
 	return false;
 }
 
-bool git_repo_tags(git_repository* repo, const std::string& match, std::vector<std::string>& out_tags)
+bool git_repo_open(const std::string& path, struct git_repository*& out_repo )
+{
+	out_repo = nullptr;
+	if(0==git_repository_open(&out_repo, path.c_str())) { return true; }
+
+	return false;
+}
+
+bool git_repo_tags(struct git_repository* repo, const std::string& match, std::vector<std::string>& out_tags)
 {
 	git_strarray tag_names = { 0 };
-	if (0 == git_tag_list_match(&tag_names, match.c_str(), repo))
+	if(0==git_tag_list_match(&tag_names, match.c_str(), repo))
 	{
 		out_tags.clear();
 		for (size_t i = 0; i < tag_names.count; i++) { out_tags.push_back(tag_names.strings[i]); }
@@ -41,7 +58,7 @@ bool git_repo_tags(git_repository* repo, const std::string& match, std::vector<s
 	return false;
 }
 
-bool git_repo_version(git_repository* repo, std::string& out_version)
+bool git_repo_version(struct git_repository* repo, std::string& out_version)
 {
 	git_describe_options describe_options;
 	memset(&describe_options, 0, sizeof(describe_options));
@@ -65,17 +82,115 @@ bool git_repo_version(git_repository* repo, std::string& out_version)
 	return false;
 }
 
-void git_repo_close(git_repository* repo)
+void git_repo_close(struct git_repository*& repo)
 {
 	git_repository_free(repo);
+	repo = nullptr;
 }
 
-void git_shutdown()
+bool git_repo_tree(struct git_repository* repo, const std::string& path, struct git_tree*& out_tree)
 {
-	if (!started) { return; }
+	/*
+	out_tree = nullptr;
 
-	printf("git_shutdown\n");
-	git_libgit2_shutdown();
+	struct git_commit* head = nullptr;
+	struct git_reference* headref = nullptr;
+	git_repository_head(&headref, repo);
+	git_reference_peel((git_object**)&head, headref, GIT_OBJ_COMMIT);
+
+	struct git_tree* treeroot = nullptr;
+	git_commit_tree(&treeroot, head);
+
+	out_tree = treeroot;
+	if (!path.empty())
+	{
+		const git_tree_entry* entry = git_tree_entry_byname(treeroot, path.c_str());
+		git_object_t type = git_tree_entry_type(entry);
+		if (type == GIT_OBJ_TREE)
+		{
+			git_object* obj = nullptr;
+			git_tree_entry_to_object(&obj, repo, entry);
+			git_tree_lookup(&out_tree, repo, git_object_id(obj));
+		}
+		else
+		{
+			out_tree = nullptr;
+		}
+	}
+
+	git_tree_free(tree);
+	git_commit_free(head);
+	git_reference_free(headref);
+
+	return true;
+	*/
+	return false;
 }
+
+
+
+bool git_repo_listing(struct git_repository* repo, const std::string& path, std::vector<std::pair<std::string,bool>>& out_listing)
+{
+	/*
+	out_listing.clear();
+
+	struct git_tree* tree = nullptr;
+	if(!git_repo_tree(repo, path, tree))
+	{
+		return false;
+	}
+
+	git_repository* tree_repo = git_tree_owner(tree);
+
+	
+	
+	for(unsigned int ii = 0; ii < git_tree_entrycount(tree); ii++) 
+	{
+		const git_tree_entry* entry = git_tree_entry_byindex(tree, ii);
+
+		git_object_t type = git_tree_entry_type(entry);
+		if (type == GIT_OBJ_TREE)
+		{
+			printf("path %s\n", git_tree_entry_name(entry));
+		}
+		else
+		if (type == GIT_OBJ_BLOB)
+		{
+			printf("file %s\n", git_tree_entry_name(entry));
+		}
+	}
+
+	git_tree_free(tree);
+	git_commit_free(head);
+	git_reference_free(headref);
+
+	return true;
+	*/
+
+	return false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

@@ -23,7 +23,11 @@ workspace "vertualfs"
       language "C++"
       cppdialect "C++20"
       defines { }
-      includedirs { vcpkgdir.."installed/x64-windows/include", "$(ProjectDir)../include" }
+      includedirs 
+      { 
+         vcpkgdir.."installed/x64-windows/include", "$(ProjectDir)../include",
+         reposdir.."uuid_v4"
+      }
       
       files { "include/*.hpp", "src/*.hpp", "src/*.cpp" }
       objdir "%{_ACTION}/%{cfg.buildcfg}/int_x64/"
