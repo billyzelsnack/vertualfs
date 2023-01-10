@@ -7,8 +7,10 @@
 
 
 
-bool commands_process(int argc, const char** argv);
-bool commands_process(const char* argv0, const std::string& line);
+bool mount_ensureadded(const std::string& path);
+void list_mounts();
+bool select_mount(int index);
+bool mount_ls();
 
 
 
