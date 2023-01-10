@@ -1,52 +1,34 @@
 
-#ifndef VERTUALFS_GITREPO_HPP
-#define VERTUALFS_GITREPO_HPP
+#ifndef VERTUALFS_GITREPOSITORY_HPP
+#define VERTUALFS_GITREPOSITORY_HPP
 
 #include <string>
-#include <vector>
-
-
-namespace vertualfs
-{
-	class GitFileSystem;
-}
 
 struct git_repository;
 struct git_commit;
 struct git_tree;
 
-class vertualfs::GitFileSystem
+namespace vertualfs
 {
+	struct GitRepository;
+}
 
-private:
-
-	GitFileSystem(struct git_repository* repo, struct git_commit* commit, struct git_tree* tree);
-	~GitFileSystem();
-
-public:
-
-	bool listing(const std::string& path, std::vector<std::pair<std::string, bool>>& out_files);
-
-	bool repo_version(std::string& out_version) const;
-
-
-	bool lookup_remote_url(const std::string& name, std::string& out_url) const;
-
-
-	static GitFileSystem* create(const std::string& path);
-
-public:
-
+struct vertualfs::GitRepository
+{
 	git_repository* repo = nullptr;
 	git_commit* commit = nullptr;
 	git_tree* tree = nullptr;
 
+	GitRepository(git_repository* repo, git_commit* commit, git_tree* tree);
+	~GitRepository();
 };
 
-
-void GitFileSystem_shutdown();
-bool GitFileSystem_startup();
-
+namespace vertualfs
+{
+	vertualfs::GitRepository* GitRepository_Create(const std::string& path);
+	void GitRepository_Shutdown();
+	bool GitRepository_Startup();
+}
 
 #endif
 

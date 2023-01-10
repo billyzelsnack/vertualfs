@@ -1,15 +1,15 @@
 
-#ifndef VERTUALFSTOOL_HPP
-#define VERTUALFSTOOL_HPP
+#ifndef VERTUALFSTOOL_CLI_HPP
+#define VERTUALFSTOOL_CLI_HPP
 
 
+namespace vertualfstool
+{
 
+	bool cli(int argc, const char** argv);
+	bool cli(const char* argv0, const std::string& line);
 
-
-
-bool commands_process(int argc, const char** argv);
-bool commands_process(const char* argv0, const std::string& line);
-
+}
 
 
 

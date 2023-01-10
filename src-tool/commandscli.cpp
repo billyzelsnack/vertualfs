@@ -11,21 +11,9 @@
 
 
 
+
+
 /*
-volume
-{
-    repo{ }
-    repo{ }
-    filesystem{ }
-    filesystem{ }
-}
-*/
-
-
-
-
-
-
 struct list_mounts_command
 {
     list_mounts_command(lyra::cli& cli)
@@ -133,38 +121,25 @@ struct mount_ls_command
     }
 
 };
+*/
 
 
-
-static void showhelp()
-{
-    printf("help\n");
-    printf("list mounts\n");
-    printf("mount ensureadded <path>\n");
-    printf("select mount <index>\n");
-    printf("mount ls\n");
-    printf("mount cd <relative directory>\n");
-}
-
-
-bool commands_process(int argc, const char** argv)
-{
-    bool noexit = true;
-    
+bool vertualfstool::cli(int argc, const char** argv)
+{   
     auto cli = lyra::cli();
-    cli.add_argument(lyra::command("help", [&](const lyra::group& g) { showhelp(); }));
-    cli.add_argument(lyra::command("exit", [&](const lyra::group& g) { noexit = false; }));
-    select_mount_command select_mount_cmd{ cli };
-    list_mounts_command mount_list_cmd{ cli };
-    mount_ensureadded_command mount_ensureadded_cmd{ cli };
-    mount_ls_command{ cli };
+    cli.add_argument(lyra::command("help", [&](const lyra::group& g) { vertualfstool::help(""); }));
+    cli.add_argument(lyra::command("exit", [&](const lyra::group& g) { vertualfstool::exit(); }));
+    //select_mount_command select_mount_cmd{ cli };
+    //list_mounts_command mount_list_cmd{ cli };
+    //mount_ensureadded_command mount_ensureadded_cmd{ cli };
+    //mount_ls_command{ cli };
 
     auto result = cli.parse({ argc, argv });
 
-    return noexit;
+    return true;
 }
 
-bool commands_process(const char* argv0, const std::string& line)
+bool vertualfstool::cli(const char* argv0, const std::string& line)
 {
     std::string aline = line;
 
@@ -178,7 +153,7 @@ bool commands_process(const char* argv0, const std::string& line)
     }
     //for (int ii = 0; ii < lineargv.size(); ii++) { printf("[%d][%s]\n", ii, lineargv[ii]); }
 
-    return commands_process((int)lineargv.size(), lineargv.data());
+    return cli((int)lineargv.size(), lineargv.data());
 }
 
 
