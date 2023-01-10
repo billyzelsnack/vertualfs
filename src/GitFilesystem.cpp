@@ -73,7 +73,7 @@ bool vertualfs::GitFilesystem::listing(const std::string& path, std::vector<std:
 
 vertualfs::GitFilesystem* vertualfs::GitFilesystem::create(vertualfs::GitRepository* repository)
 {
-	LOG(INFO) << "vertualfs::GitFilesystem::create";
+	//LOG(INFO) << "vertualfs::GitFilesystem::create";
 
 	if (repository == nullptr) { return nullptr; }
 

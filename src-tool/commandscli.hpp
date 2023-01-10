@@ -6,8 +6,8 @@
 namespace vertualfstool
 {
 
-	bool cli(int argc, const char** argv);
-	bool cli(const char* argv0, const std::string& line);
+	bool commandscli(int argc, const char** argv, std::string& out_result);
+	bool commandscli(const char* argv0, const std::string& line, std::string& out_result);
 
 }
 

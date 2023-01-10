@@ -6,18 +6,18 @@
 namespace vertualfstool
 {
     bool help(const std::string& arg);
-    bool create_volume(const std::string& indexorname);
-    bool ls_volume();
+    bool create_volume(const std::string& name);
+    bool ls_volumes();
     bool cd_volume(const std::string& indexorname);
     bool exit();
 
     bool volume_help(const std::string& arg);
     bool volume_ensureavailable_repository(const std::string& url, const std::string& tag);
-    bool volume_ls_repository();
+    bool volume_ls_repositories();
     bool volume_cd_repository(const std::string& indexorurl, const std::string& tag);
     bool volume_ensureunavailable_repository(const std::string& indexorurl, const std::string& tag);
     bool volume_create_filesystem(const std::string& indexorurl, const std::string& tag, const std::string& name);
-    bool volume_ls_filesystem();
+    bool volume_ls_filesystems();
     bool volume_cd_filesystem(const std::string& indexorname);
     bool volume_delete_filesystem(const std::string& indexorname);
 
@@ -29,6 +29,7 @@ namespace vertualfstool
     bool volume_filesystem_push();
 
     bool exited();
+    std::string prompt();
 }
 
 

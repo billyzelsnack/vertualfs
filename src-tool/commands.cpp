@@ -15,96 +15,106 @@
 
 
 bool gexited=false;
-
-
+std::string gprompt = ">";
 
 
 //-- todo: change all the std::string path to std::filesystem::path
+//-- todo: make sure that all names are valid file names
+//-- todo: redo commands now that you understand command groups better
 
-struct Volume
+
+
+namespace vertualfs
+{
+    struct Volume;
+}
+
+//-- todo: this does not belong in this file
+struct vertualfs::Volume
 {
     std::vector<vertualfs::GitRepository*> repositories;
     std::vector<vertualfs::GitFilesystem*> filesystems;
 };
 
-static Volume* gvolume = new Volume();
+std::vector<std::pair<vertualfs::Volume*,std::string>> gvolumes;
+std::string gselectvolumename;
 
 
-
-
-bool volume_repository_ensureavailable(const std::string& path)
+static bool get_index_by_indexorname(const std::string& indexorname, int& inout_index)
 {
-    std::filesystem::path stdpath(path);
-    stdpath.replace_extension(); //-- unify to never having the .git extension
+    //-- yeah i did that
+    try{ inout_index=std::stoi(indexorname); return true; } catch (...) { return false; }
+}
 
-    for (const auto repository : gvolume->repositories)
+static vertualfs::Volume* get_volume_by_indexorname( const std::string& indexorname )
+{
+    if(indexorname.empty()) { return nullptr; }
+
+    int index = -1;
+    if(get_index_by_indexorname(indexorname, index))
     {
-        vertualfs::GitFilesystem* fs = vertualfs::GitFilesystem::create(repository);
-        std::string url;
-        fs->lookup_remote_url("origin", url);
+        if(index>=0 && index<gvolumes.size()) { return gvolumes[index].first; }
+    }
+    else
+    {
+        for (const auto& [volume, name] : gvolumes) { if (name == indexorname) { return volume; } }
+    }
+
+    return nullptr;
+}
+
+static vertualfs::GitRepository* get_repository_by_urlandtag(vertualfs::Volume* volume, const std::string& url, const std::string& tag)
+{
+    if (volume == nullptr) { return nullptr; }
+    if (url.empty()) { return nullptr; }
+   
+    for (auto* repository : volume->repositories) 
+    {             
+        vertualfs::GitFilesystem* fs=vertualfs::GitFilesystem::create(repository);
+        if (fs != nullptr)
+        {
+            std::string testurl;
+            if(fs->lookup_remote_url("origin", testurl))
+            {
+                //printf("[%s]?=[%s]\n", testurl.c_str(), url.c_str());
+                if (testurl == url) { delete fs; return repository; }
+            }
+        }
         delete fs;
-        std::filesystem::path stdurl(url);
-        stdurl.replace_extension(); //-- unify to never having the .git extension
-
-        if (stdpath == stdurl) { return true; }
     }
 
-    vertualfs::GitRepository* repository = vertualfs::GitRepository_Create(stdpath.string());
-    if (repository == nullptr) { return false; }
-    gvolume->repositories.push_back(repository);
-
-    return true;
+    return nullptr;
 }
 
-bool volume_filesystem_create(int repositoryIndex)
+
+
+std::string vertualfstool::prompt()
 {
-    if (repositoryIndex < 0) { return false; }
-    if (repositoryIndex < gvolume->filesystems.size())
-    {
-        auto repository = gvolume->repositories[repositoryIndex];
-        vertualfs::GitFilesystem* filesystem = vertualfs::GitFilesystem::create(repository);
-        if (filesystem == nullptr) { return false; }
-        gvolume->filesystems.push_back(filesystem);
-        return true;
-    }
+    std::string prompt;
+    vertualfs::Volume* volume = get_volume_by_indexorname(gselectvolumename);
+    if (volume != nullptr){ prompt += "volume-"+gselectvolumename; }
 
-    return false;
+    //if (!prompt.empty()) { prompt += "/"; }
+  
+    return prompt + ">";
 }
-
-void volume_repository_listing()
-{
-    for (int ii = 0; ii < gvolume->repositories.size(); ii++)
-    {
-        const auto repository = gvolume->repositories[ii];
-        std::string url;
-        vertualfs::GitFilesystem* fs = vertualfs::GitFilesystem::create(repository);
-        fs->lookup_remote_url("origin", url);
-        delete fs;
-        std::filesystem::path stdurl(url);
-        stdurl.replace_extension(); //-- unify to never having the .git extension
-
-        printf("%d [%s]\n", ii, stdurl.string().c_str());
-    }
-}
-
-
 
 bool vertualfstool::help(const std::string& arg) 
 { 
     printf("help [create|ls|cd|delete|exit]\n");
     printf("create volume <name>\n");
-    printf("ls volume\n");
+    printf("ls volumes\n");
     printf("cd volume <#|name>\n");
     printf("delete volume <#|name>\n");
     printf("exit");
 
     printf("volume-name>help [ensureavailable|ls|cd|ensureunavailable]\n");
-    printf("volume-name>ensureavailable repository <url[:tag]>\n");
-    printf("volume-name>ls repository\n");
-    printf("volume-name>cd repository <#|url[:tag]>\n");
-    printf("volume-name>ensureunavailable repository <#|url[:tag]>\n");
-    printf("volume-name>create filesystem <#|url:[tag]> <name>\n");
-    printf("volume-name>ls filesystem\n");
+    printf("volume-name>ensureavailable repository <url [tag]>\n");
+    printf("volume-name>ls repositories\n");
+    printf("volume-name>cd repository <#|url [tag]>\n");
+    printf("volume-name>ensureunavailable repository <#|url [tag]>\n");
+    printf("volume-name>create filesystem <#|url [tag]> <name>\n");
+    printf("volume-name>ls filesystems\n");
     printf("volume-name>cd filesystem <#|name>\n");
     printf("volume-name>delete filesystem <#|name>\n");
 
@@ -118,9 +128,42 @@ bool vertualfstool::help(const std::string& arg)
     return true; 
 }
 
-bool vertualfstool::create_volume(const std::string& indexorname) { return false; }
-bool vertualfstool::ls_volume() { return false; }
-bool vertualfstool::cd_volume(const std::string& indexorname) { return false; }
+bool vertualfstool::create_volume(const std::string& name) 
+{
+    printf("{create_volume [%s]}\n", name.c_str());
+    if (name.empty()) { return false; }
+    for( const auto& [volume,name] : gvolumes ){ if (name == name) { return false; } }
+
+    gvolumes.push_back({ new vertualfs::Volume(), name });
+
+    return false; 
+}
+
+bool vertualfstool::ls_volumes() 
+{ 
+    printf("{ls volumes}\n");
+    for( int ii=0; ii<gvolumes.size(); ii++ )
+    {
+        printf("%d [%s]\n", ii, gvolumes[ii].second.c_str());
+    }
+
+    return false; 
+}
+
+bool vertualfstool::cd_volume(const std::string& indexorname) 
+{ 
+    printf("{cd volume [%s]}\n",indexorname.c_str());
+
+    vertualfs::Volume* indexornamevolume = get_volume_by_indexorname(indexorname);
+    if (indexornamevolume == nullptr) { return false; }
+
+    for (const auto& [volume, name] : gvolumes) 
+    { 
+        if (volume == indexornamevolume) { gselectvolumename = name; printf("{cd_volume [%s]}\n", gselectvolumename.c_str()); return true; }
+    }
+
+    return false;
+}
 
 bool vertualfstool::exit() 
 { 
@@ -133,14 +176,64 @@ bool vertualfstool::exited()
     return gexited;
 }
 
-
 bool vertualfstool::volume_help(const std::string& arg) { return false; }
-bool vertualfstool::volume_ensureavailable_repository(const std::string& url, const std::string& tag) { return false; }
-bool vertualfstool::volume_ls_repository() { return false; }
+
+bool vertualfstool::volume_ensureavailable_repository(const std::string& url, const std::string& tag) 
+{ 
+    printf("{volume ensureavailable repository [%s] [%s]}\n",url.c_str(),tag.c_str());
+
+    vertualfs::Volume* volume = get_volume_by_indexorname(gselectvolumename);
+    if (volume == nullptr)
+    {
+        printf("volume==nullptr");
+        return false;
+    }
+
+    vertualfs::GitRepository* repository = get_repository_by_urlandtag(volume, url, tag);
+    if(repository == nullptr)
+    {
+        repository=vertualfs::GitRepository_Create(url);
+        volume->repositories.push_back(repository);
+    }
+
+    return true;
+}
+
+
+
+bool vertualfstool::volume_ls_repositories() 
+{ 
+    printf("{volume ls repositories}\n");
+
+    vertualfs::Volume* volume = get_volume_by_indexorname(gselectvolumename);
+    if (volume == nullptr)
+    {
+        printf("volume==nullptr");
+        return false;
+    }
+
+    for (int ii=0; ii<volume->repositories.size(); ii++)
+    {
+        vertualfs::GitFilesystem* fs = vertualfs::GitFilesystem::create(volume->repositories[ii]);
+        if (fs != nullptr)
+        {
+            std::string url;
+            if (fs->lookup_remote_url("origin", url))
+            {
+                printf("%d [%s]\n", ii, url.c_str());
+            }
+        }
+        delete fs;
+    }
+
+    return true;
+}
+
+
 bool vertualfstool::volume_cd_repository(const std::string& indexorurl, const std::string& tag) { return false; }
 bool vertualfstool::volume_ensureunavailable_repository(const std::string& indexorurl, const std::string& tag) { return false; }
 bool vertualfstool::volume_create_filesystem(const std::string& indexorurl, const std::string& tag, const std::string& name) { return false; }
-bool vertualfstool::volume_ls_filesystem() { return false; }
+bool vertualfstool::volume_ls_filesystems() { return false; }
 bool vertualfstool::volume_cd_filesystem(const std::string& indexorname) { return false; }
 bool vertualfstool::volume_delete_filesystem(const std::string& indexorname) { return false; }
 

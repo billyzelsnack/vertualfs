@@ -17,7 +17,7 @@ class vertualfs::GitFilesystem
 
 private:
 
-	GitFilesystem(GitRepository* repository);
+	GitFilesystem(vertualfs::GitRepository* repository);
 
 public:
 
@@ -29,7 +29,7 @@ public:
 	bool repo_version(std::string& out_version) const;
 	bool lookup_remote_url(const std::string& name, std::string& out_url) const;
 
-	static GitFilesystem* create(vertualfs::GitRepository* repository);
+	static vertualfs::GitFilesystem* create(vertualfs::GitRepository* repository);
 
 public:
 
