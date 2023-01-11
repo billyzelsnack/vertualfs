@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -8,6 +9,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <vertualfs/Filesystem.hpp>
 #include <vertualfs/vertualfs.hpp>
 #include <vertualfs/Volume.hpp>
 
@@ -18,7 +20,7 @@
 
 
 
-extern vertualfs::Volume gvolume;
+extern vertualfs::Hub gvolume;
 
 
 
@@ -29,15 +31,10 @@ int main2(int argc, const char** argv)
 
     std::string cliresult;
     vertualfstool::commandscli(argc, argv, cliresult);
-    vertualfstool::commandscli(argv[0], "help", cliresult);
-    vertualfstool::commandscli(argv[0], "create volume nachos", cliresult);
-    vertualfstool::commandscli(argv[0], "ls volumes", cliresult);
-    vertualfstool::commandscli(argv[0], "cd volume nachos", cliresult);
-    vertualfstool::commandscli(argv[0], "ensureavailable repository c:/repos/headtest tag", cliresult);
-    vertualfstool::commandscli(argv[0], "ensureavailable repository https://github.com/billyzelsnack/simple_onshape_exportstls.git tag", cliresult);
-    vertualfstool::commandscli(argv[0], "ensureavailable repository https://gitlab.com/telemotor/users/billy/headtest tag", cliresult);
-    vertualfstool::commandscli(argv[0], "ensureavailable repository c:/repos/headtest tag", cliresult);
-    vertualfstool::commandscli(argv[0], "ls repositories", cliresult);
+    //vertualfstool::commandscli(argv[0], "ensureavailable repository c:/repos/headtest tag", cliresult);
+    //vertualfstool::commandscli(argv[0], "ensureavailable repository https://github.com/billyzelsnack/simple_onshape_exportstls.git tag", cliresult);
+    //vertualfstool::commandscli(argv[0], "ensureavailable repository https://gitlab.com/telemotor/users/billy/headtest tag", cliresult);
+    //vertualfstool::commandscli(argv[0], "ensureavailable repository c:/repos/headtest tag", cliresult);
 
     while(!vertualfstool::exited())
     {
@@ -61,6 +58,8 @@ int main2(int argc, const char** argv)
 
 std::string crumbsbrowser(const std::vector<std::string>& crumbs)
 {
+    if (crumbs.empty()) { return ""; }
+
     std::string selection;
 
     ImGui::PushStyleColor(ImGuiCol_TableBorderStrong, ImColor(0, 64, 0).Value);
@@ -79,7 +78,9 @@ std::string crumbsbrowser(const std::vector<std::string>& crumbs)
             ImGui::TableSetColumnIndex(ii * 2);
             bool selected = false;
             ImGui::AlignTextToFramePadding();
-            if (ImGui::Selectable(crumbs[ii].c_str(), &selected, ImGuiSelectableFlags_None)) { selection = crumbs[ii]; }
+            std::string name = crumbs[ii];
+            if(name=="/"){name="root";}
+            if (ImGui::Selectable(name.c_str(), &selected, ImGuiSelectableFlags_None)) { selection = crumbs[ii]; }
             ImGui::TableNextColumn();
             ImGui::Text("/");
         }
@@ -92,7 +93,7 @@ std::string crumbsbrowser(const std::vector<std::string>& crumbs)
 }
 
 std::string listingbrowser(const std::vector<std::tuple<std::string,bool>>& listing)
-{
+{  
     std::string selection;
 
     ImGuiTableFlags flags = ImGuiTableFlags_None;// ImGuiTableFlags_BordersInnerH;
@@ -120,38 +121,45 @@ std::string listingbrowser(const std::vector<std::tuple<std::string,bool>>& list
     return selection;
 }
 
-
-
-
-void volumebrowser(vertualfs::Volume* volume)
+void hubbrowser(vertualfs::Hub* hub)
 {
+    std::vector<std::pair<std::string, bool>> listing;
+    hub->filesystem->ls(listing);
+
+
     std::vector<std::string> crumbs;
-    crumbs.push_back("avertualfs");
-    crumbs.push_back("binclude");
-    crumbs.push_back("bvertualfs");
+    //crumbs.push_back("/");
+    for (const auto& subpath : hub->filesystem->cwd){ crumbs.push_back(subpath.string().c_str()); }
     std::string crumbselected = crumbsbrowser(crumbs);
-    if (!crumbselected.empty())
+    if(!crumbselected.empty())//size()>1)
     {
-        printf("crumbselected[%s]\n", crumbselected.c_str());
+        std::filesystem::path cwd;// = "/";
+        for (const auto& subpath : hub->filesystem->cwd)
+        {
+            cwd = cwd/subpath.string();
+            if (subpath.string() == crumbselected) { break; }
+        }
+
+        printf("crumbselected[%s][%s]\n", crumbselected.c_str(),cwd.string().c_str());
+        hub->filesystem->cwd = cwd;
     }
 
-    std::string listingselected = "";
+    std::string folderselected;
     {
-        std::vector<std::tuple<std::string, bool>> listing;
-        listing.push_back({ "include",true });
-        listing.push_back({ "src",true });
-        listing.push_back({ "src-tool",true });
-        listingselected += listingbrowser(listing);
+        std::vector<std::tuple<std::string, bool>> folderslisting;
+        for (auto& [name, isfolder] : listing) {if(isfolder){ folderslisting.push_back({ name,isfolder }); }}
+        if (folderslisting.size() > 1){ folderselected = listingbrowser(folderslisting); }
     }
     {
-        std::vector<std::tuple<std::string, bool>> listing;
-        listing.push_back({ "LICENSE.txt",false });
-        listing.push_back({ "premake5.lua",false });
-        listingselected += listingbrowser(listing);
+        std::vector<std::tuple<std::string, bool>> fileslisting;
+        for (auto& [name, isfolder] : listing){if(!isfolder){ fileslisting.push_back({ name,isfolder }); }}
+        listingbrowser(fileslisting);
     }
-    if (!listingselected.empty())
+    if (!folderselected.empty())
     {
-        printf("listingselected[%s]\n", listingselected.c_str());
+        printf("folderselected[%s]\n", folderselected.c_str());
+        hub->filesystem->cd(folderselected);
+        printf("cwd[%s]\n", hub->filesystem->cwd.string().c_str());
     }
 
 }
@@ -166,19 +174,52 @@ void volumebrowser(vertualfs::Volume* volume)
 
 
 
-
-
-
-
-static void glfw_error_callback(int error, const char* description)
+int mainwin(int argc, const char**, GLFWwindow* window)
 {
-    fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+    if (!vertualfs_startup()) { return EXIT_FAILURE; }
+
+    //std::string huburl="https://gitlab.com/billy.zelsnack/hubexample.git";
+    std::string huburl="https://gitlab.com/telemotor/users/billy/headtest";
+    vertualfs::Hub* hub=vertualfs::Hub::create(huburl);
+    if (hub == nullptr){ vertualfs_shutdown(); return EXIT_FAILURE; }
+
+    while (!glfwWindowShouldClose(window))
+    {
+        glfwPollEvents();
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        std::string title = "Hub [" + huburl + "]";
+        ImGui::Begin(title.c_str());
+        hubbrowser(hub);
+        ImGui::End();
+
+        ImGui::Render();
+        int display_w, display_h;
+        glfwGetFramebufferSize(window, &display_w, &display_h);
+        glViewport(0, 0, display_w, display_h);
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        glfwSwapBuffers(window);
+    }
+
+    vertualfs_shutdown();
+    return EXIT_SUCCESS;
 }
 
-int main(int, char**)
+void glfw_error_callback(int error, const char* description)
+{
+    fprintf(stderr, "GLFW Error %d: %s\n", error, description);
+}
+
+int main(int argc, const char** argv)
 {
     glfwSetErrorCallback(glfw_error_callback);
-    if(!glfwInit()) { return 1; }
+    if(!glfwInit()) { return EXIT_FAILURE; }
 
 #if defined(__APPLE__)
     // GL 3.2 + GLSL 150
@@ -218,31 +259,7 @@ int main(int, char**)
         io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_FA, 16.0f, &icons_config, icons_ranges);
     }
 
-    while(!glfwWindowShouldClose(window))
-    {
-        glfwPollEvents();
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        std::string title="Volume ["+gvolume.root.string()+"]";
-        ImGui::Begin(title.c_str());
-        
-        volumebrowser(&gvolume);
-        
-        ImGui::End();
-
-        ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(window, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
-        glClearColor(0, 0, 0, 1);
-        glClear(GL_COLOR_BUFFER_BIT);
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        glfwSwapBuffers(window);
-    }
+    int result = mainwin(argc, argv, window);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -251,7 +268,7 @@ int main(int, char**)
     glfwDestroyWindow(window);
     glfwTerminate();
 
-    return 0;
+    return result;
 }
 
 

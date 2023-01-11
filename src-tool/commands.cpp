@@ -1,4 +1,5 @@
 
+
 #include "commands.hpp"
 
 #include <filesystem>
@@ -17,9 +18,11 @@
 
 
 
-
 bool gexited=false;
+
+/*
 std::string gprompt = ">";
+
 
 
 //-- todo: change all the std::string path to std::filesystem::path
@@ -61,16 +64,17 @@ static vertualfs::GitRepository* get_repository_by_urlandtag(vertualfs::Volume* 
     return nullptr;
 }
 
-
+*/
 
 std::string vertualfstool::prompt()
 {
     std::string prompt;
+/*
     vertualfs::Volume* volume = &gvolume;
     if (volume != nullptr){ prompt += "volume-"+std::string("name"); }
 
     //if (!prompt.empty()) { prompt += "/"; }
-  
+*/
     return prompt + ">";
 }
 
@@ -111,6 +115,8 @@ bool vertualfstool::exited()
 }
 
 bool vertualfstool::volume_help(const std::string& arg) { return false; }
+
+/*
 
 bool vertualfstool::volume_ensureavailable_repository(const std::string& url, const std::string& tag) 
 { 
@@ -177,4 +183,7 @@ bool vertualfstool::volume_filesystem_cd(const std::string& indexorname) { retur
 bool vertualfstool::volume_filesystem_status() { return false; }
 bool vertualfstool::volume_filesystem_commit(const std::string& arg) { return false; }
 bool vertualfstool::volume_filesystem_push() { return false; }
+
+
+*/
 

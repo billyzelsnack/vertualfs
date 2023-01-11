@@ -43,36 +43,81 @@ bool vertualfs::GitFilesystem::repo_version(std::string& out_version) const
 }
 
 
-bool vertualfs::GitFilesystem::listing(const std::string& path, std::vector<std::pair<std::string, bool>>& out_listing)
+bool vertualfs::GitFilesystem::listing(const std::filesystem::path& path, std::vector<std::pair<std::string, bool>>& out_listing)
 {	
 	out_listing.clear();
 
-	for (unsigned int ii = 0; ii < git_tree_entrycount(repository->tree); ii++)
+	git_tree* root = nullptr;
+	git_commit_tree(&root, repository->commit);
+	if (root == nullptr) { return false; }
+	std::vector<git_tree*> crumbs;
+	crumbs.push_back(root);
+	git_tree* trav = root;
+	for (const auto& subpath : path)
 	{
-		const git_tree_entry* entry = git_tree_entry_byindex(repository->tree, ii);
+		size_t numentries = git_tree_entrycount(trav);
+		for (unsigned int ii = 0; ii < numentries; ii++)
+		{
+			const git_tree_entry* entry = git_tree_entry_byindex(trav, ii);
+
+			git_object_t type = git_tree_entry_type(entry);
+			const char* name = git_tree_entry_name(entry);
+			if ((type == GIT_OBJ_TREE) && (subpath == name))
+			{
+				git_object* object=nullptr;
+				git_tree_entry_to_object(&object, repository->repo, entry);
+				git_object_peel((git_object**)&trav, object, GIT_OBJECT_TREE);
+				git_object_free(object);
+				crumbs.push_back(trav);
+				continue;
+			}
+		}
+	}
+	
+	
+	size_t numentries = git_tree_entrycount(trav);
+	for (unsigned int ii = 0; ii < numentries; ii++)
+	{
+		const git_tree_entry* entry = git_tree_entry_byindex(trav, ii);
 
 		git_object_t type = git_tree_entry_type(entry);
 		const char* name = git_tree_entry_name(entry);
 		if (type == GIT_OBJ_TREE)
 		{
-			printf("path %s\n", name);
+			//printf("path %s\n", name);
 			out_listing.push_back({ name, true });
 		}
 		else
 		if (type == GIT_OBJ_BLOB)
 		{
-			printf("file %s\n", name);
+			//printf("file %s\n", name);
 			out_listing.push_back({ name, false });
 		}
 	}
 
-	return false;
+	for (auto crumb : crumbs) { git_tree_free(crumb); }
+
+	return true;
 }
+
+bool vertualfs::GitFilesystem::ls(std::vector<std::pair<std::string, bool>>& out_listing)
+{
+	if (!listing(cwd.string(), out_listing)) { return false; }
+	return true;
+}
+
+bool vertualfs::GitFilesystem::cd(const std::filesystem::path& relativepath)                          
+{
+	std::filesystem::path newcwd = cwd.append(relativepath.string());
+	cwd = newcwd;
+
+
+	return true;
+}
+
 
 vertualfs::GitFilesystem* vertualfs::GitFilesystem::create(vertualfs::GitRepository* repository)
 {
-	//LOG(INFO) << "vertualfs::GitFilesystem::create";
-
 	if (repository == nullptr) { return nullptr; }
 
 	return new vertualfs::GitFilesystem(repository);

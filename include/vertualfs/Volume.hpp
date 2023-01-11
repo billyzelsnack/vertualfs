@@ -8,17 +8,21 @@
 
 namespace vertualfs
 {
+    class GitFilesystem;
     struct GitRepository;
-    struct Volume;
+    struct Hub;
 }
 
-struct vertualfs::Volume
+struct vertualfs::Hub
 {
-    std::filesystem::path root;
     //std::unordered_map<std::filesystem::path, vertualfs::GitRepository*> availableRepositories;
     std::vector<vertualfs::GitRepository*> availableRepositories;
-};
+    vertualfs::GitFilesystem* filesystem = nullptr;
 
+    static vertualfs::Hub* create(const std::filesystem::path& hubpath);
+private:
+    Hub() {}
+};
 
 
 #endif

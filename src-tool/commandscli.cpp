@@ -12,7 +12,7 @@
 
 
 
-
+/*
 struct command_ensureavailable_repository
 {
     std::string url;
@@ -51,6 +51,7 @@ struct command_ls_repositories
         );
     }
 };
+*/
 
 
 
@@ -61,12 +62,8 @@ bool vertualfstool::commandscli(int argc, const char** argv, std::string& out_re
     auto cli = lyra::cli();
     cli.add_argument(lyra::command("help", [&](const lyra::group& g) { vertualfstool::help(""); }));
     cli.add_argument(lyra::command("exit", [&](const lyra::group& g) { vertualfstool::exit(); }));
-    command_ensureavailable_repository cd{ cli };
-    command_ls_repositories ce{ cli };
-    //select_mount_command select_mount_cmd{ cli };
-    //list_mounts_command mount_list_cmd{ cli };
-    //mount_ensureadded_command mount_ensureadded_cmd{ cli };
-    //mount_ls_command{ cli };
+    //command_ensureavailable_repository cd{ cli };
+    //command_ls_repositories ce{ cli };
 
     auto result = cli.parse({ argc, argv });
 

@@ -8,6 +8,10 @@
 #include <git2.h>
 
 
+//-- after an open need to check if the remote has changed
+
+
+
 static bool started = false;
 
 void vertualfs::GitRepository_Shutdown()

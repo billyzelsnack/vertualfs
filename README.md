@@ -1,3 +1,7 @@
+# Development status
+
+This codebase is only a few days old and is under heavy development with massive changes being made daily. It also only has minimal value at this point. Wait for the first release.
+
 # vertualfs
 
 VERsioned virTUAL FileSystem library and command-line tool.
@@ -15,5 +19,5 @@ VERsioned virTUAL FileSystem library and command-line tool.
 * git clone https://github.com/juliettef/IconFontCppHeaders.git
 * Change vcpkgdir and reposdir at top of premake5.lua to match yours.
 * premake5 vs2022
-* vs2022/vertualfs.sln and set vertualfstool as startup project.
+* vs2022/vertualfs.sln
 * F5 to build and run.
