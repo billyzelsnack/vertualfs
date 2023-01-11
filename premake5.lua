@@ -50,7 +50,7 @@ workspace "vertualfs"
       { 
          vcpkgdir.."installed/x64-windows/include", 
          "$(ProjectDir)../include",
-         reposdir.."cxxopts/include", 
+         reposdir.."IconFontCppHeaders", 
       }
       
       files { "src-tool/*.hpp", "src-tool/*.cpp" }
@@ -65,5 +65,6 @@ workspace "vertualfs"
          "{COPY} "..vcpkgdir.."installed/x64-windows/bin/pcre.dll %{cfg.targetdir}",
          "{COPY} "..vcpkgdir.."installed/x64-windows/bin/zlib1.dll %{cfg.targetdir}",
          "{COPY} "..vcpkgdir.."installed/x64-windows/bin/glfw3.dll %{cfg.targetdir}",
+         "{COPY} $(ProjectDir)../font/*.ttf %{cfg.targetdir}"
       }
 

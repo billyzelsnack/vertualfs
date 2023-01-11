@@ -1,9 +1,10 @@
 
 #include <iostream>
 #include <string>
-
+#include <vector>
 
 #include <GLFW/glfw3.h>
+#include <IconsFontAwesome4.h>
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -12,6 +13,13 @@
 
 #include "commands.hpp"
 #include "commandscli.hpp"
+
+
+
+
+
+extern vertualfs::Volume gvolume;
+
 
 
 
@@ -51,9 +59,100 @@ int main2(int argc, const char** argv)
 
 
 
+std::string crumbsbrowser(const std::vector<std::string>& crumbs)
+{
+    std::string selection;
+
+    ImGui::PushStyleColor(ImGuiCol_TableBorderStrong, ImColor(0, 64, 0).Value);
+    int crumbflags = ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_BordersOuterV;//ImGuiTableFlags_NoKeepColumnsVisible
+    int numcols = 2 * int(crumbs.size());
+    ImGui::AlignTextToFramePadding();
+    if (ImGui::BeginTable("crumbs", numcols, crumbflags, ImVec2(ImGui::GetWindowWidth(), 0)))
+    {
+        for (int ii = 0; ii < numcols; ii++) { ImGui::TableSetupColumn(std::to_string(ii).c_str(), ImGuiTableColumnFlags_WidthFixed); }
+        const float ROW_HEIGHT = ImGui::GetTextLineHeightWithSpacing() + 6;
+        ImGui::TableNextRow(ImGuiTableRowFlags_None, ROW_HEIGHT);
+        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImColor(0, 64, 0));
+
+        for (int ii = 0; ii < crumbs.size(); ii++)
+        {
+            ImGui::TableSetColumnIndex(ii * 2);
+            bool selected = false;
+            ImGui::AlignTextToFramePadding();
+            if (ImGui::Selectable(crumbs[ii].c_str(), &selected, ImGuiSelectableFlags_None)) { selection = crumbs[ii]; }
+            ImGui::TableNextColumn();
+            ImGui::Text("/");
+        }
+
+        ImGui::EndTable();
+    }
+    ImGui::PopStyleColor();
+
+    return selection;
+}
+
+std::string listingbrowser(const std::vector<std::tuple<std::string,bool>>& listing)
+{
+    std::string selection;
+
+    ImGuiTableFlags flags = ImGuiTableFlags_None;// ImGuiTableFlags_BordersInnerH;
+    if (ImGui::BeginTable("maintable", 1, flags))
+    {
+        const float ROW_HEIGHT = ImGui::GetTextLineHeightWithSpacing() + 6;
+        ImGui::TableNextRow(ImGuiTableRowFlags_None, ROW_HEIGHT);
+        ImGui::TableSetColumnIndex(0);
+
+        for (auto& [name, isfolder] : listing)
+        {
+            std::string label = name;
+            if (isfolder) { label = std::string(ICON_FA_FOLDER) + " " + name; }
+            bool selected = false;
+            ImGui::AlignTextToFramePadding();
+            if(ImGui::Selectable(label.c_str(), &selected, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap))
+            {
+                selection = name;
+            }
+        }
+
+        ImGui::EndTable();
+    }
+
+    return selection;
+}
+
+
+
 
 void volumebrowser(vertualfs::Volume* volume)
 {
+    std::vector<std::string> crumbs;
+    crumbs.push_back("avertualfs");
+    crumbs.push_back("binclude");
+    crumbs.push_back("bvertualfs");
+    std::string crumbselected = crumbsbrowser(crumbs);
+    if (!crumbselected.empty())
+    {
+        printf("crumbselected[%s]\n", crumbselected.c_str());
+    }
+
+    std::string listingselected = "";
+    {
+        std::vector<std::tuple<std::string, bool>> listing;
+        listing.push_back({ "include",true });
+        listing.push_back({ "src",true });
+        listing.push_back({ "src-tool",true });
+        listingselected += listingbrowser(listing);
+    }
+    {
+        std::vector<std::tuple<std::string, bool>> listing;
+        listing.push_back({ "LICENSE.txt",false });
+        listing.push_back({ "premake5.lua",false });
+        listingselected += listingbrowser(listing);
+    }
+    if (!listingselected.empty())
+    {
+        printf("listingselected[%s]\n", listingselected.c_str());
+    }
 
 }
 
@@ -112,6 +211,13 @@ int main(int, char**)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
+    io.Fonts->AddFontDefault();
+    static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+    {
+        ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = false; icons_config.GlyphOffset = ImVec2(0, 2);
+        io.Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_FA, 16.0f, &icons_config, icons_ranges);
+    }
+
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
@@ -120,8 +226,11 @@ int main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Hello, world!");
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        std::string title="Volume ["+gvolume.root.string()+"]";
+        ImGui::Begin(title.c_str());
+        
+        volumebrowser(&gvolume);
+        
         ImGui::End();
 
         ImGui::Render();
