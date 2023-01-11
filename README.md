@@ -11,8 +11,7 @@ VERsioned virTUAL FileSystem library and command-line tool.
 
 # Installation
 * vcpkg install libgit2:x64-windows
-* vcpkg install bfgroup-lyra:x64-windows
-* vcpkg install easyloggingpp:x64-windows
+* vcpkg install imgui[glfw-binding,opengl3-binding]:x64-windows
 * Change vcpkgdir and reposdir at top of premake5.lua to match yours.
 * premake5 vs2022
 * vs2022/vertualfs.sln

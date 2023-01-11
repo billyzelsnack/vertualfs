@@ -1,14 +1,13 @@
 
-#include "GitFilesystem.hpp"
+#include "Filesystem.hpp"
 
 #include <filesystem>
 #include <regex>
 #include <string>
 
-#include <easylogging++.h>
 #include <git2.h>
 
-#include "GitRepository.hpp"
+#include "Repository.hpp"
 
 
 vertualfs::GitFilesystem::GitFilesystem(vertualfs::GitRepository* repository) : repository(repository)
@@ -45,8 +44,7 @@ bool vertualfs::GitFilesystem::repo_version(std::string& out_version) const
 
 
 bool vertualfs::GitFilesystem::listing(const std::string& path, std::vector<std::pair<std::string, bool>>& out_listing)
-{
-	LOG(INFO) << "vertualfs::GitFilesystem::listing";
+{	
 	out_listing.clear();
 
 	for (unsigned int ii = 0; ii < git_tree_entrycount(repository->tree); ii++)

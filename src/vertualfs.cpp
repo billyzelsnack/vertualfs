@@ -2,9 +2,8 @@
 #include "vertualfs.hpp"
 
 #include <cstdio>
-#include <easylogging++.h>
 
-#include "GitRepository.hpp"
+#include "Repository.hpp"
 
 
 static bool started = false;
@@ -15,7 +14,6 @@ static bool started = false;
 bool vertualfs_startup()
 {
 	if(started){ return true; }
-	LOG(INFO) << "vertualfs_startup";
 
 	if(!vertualfs::GitRepository_Startup()){return false;}
 	started = true;
@@ -26,7 +24,6 @@ bool vertualfs_startup()
 void vertualfs_shutdown()
 {
 	if (!started) { return; }
-	LOG(INFO) << "vertualfs_shutdown";
 
 	vertualfs::GitRepository_Shutdown();
 }

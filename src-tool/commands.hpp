@@ -2,13 +2,11 @@
 #ifndef VERTUALFSTOOL_COMMANDS_HPP
 #define VERTUALFSTOOL_COMMANDS_HPP
 
+#include <string>
 
 namespace vertualfstool
 {
     bool help(const std::string& arg);
-    bool create_volume(const std::string& name);
-    bool ls_volumes();
-    bool cd_volume(const std::string& indexorname);
     bool exit();
 
     bool volume_help(const std::string& arg);

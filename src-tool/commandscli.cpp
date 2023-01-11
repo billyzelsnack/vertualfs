@@ -12,39 +12,6 @@
 
 
 
-struct command_create_volume
-{
-    std::string name;
-    command_create_volume(lyra::cli& cli)
-    {
-        cli
-        .add_argument(lyra::command("create", [this](const lyra::group& g) { return vertualfstool::create_volume(name); }).optional()
-        .add_argument(lyra::command("volume").required())
-        .add_argument(lyra::arg(name, "name").required()));
-    }
-};
-
-struct command_ls_volumes
-{
-    command_ls_volumes(lyra::cli& cli)
-    {
-        cli
-        .add_argument(lyra::command("ls", [this](const lyra::group& g) { return vertualfstool::ls_volumes(); }).optional()
-        .add_argument(lyra::command("volumes").required()));
-    }
-};
-
-struct command_cd_volume
-{
-    std::string indexorname;
-    command_cd_volume(lyra::cli& cli)
-    {
-        cli
-        .add_argument(lyra::command("cd").optional())
-        .add_argument(lyra::command("volume", [this](const lyra::group& g) { return vertualfstool::cd_volume(indexorname); }).required()
-        .add_argument(lyra::arg(indexorname, "indexorname").required()));
-    }
-};
 
 struct command_ensureavailable_repository
 {
@@ -94,9 +61,6 @@ bool vertualfstool::commandscli(int argc, const char** argv, std::string& out_re
     auto cli = lyra::cli();
     cli.add_argument(lyra::command("help", [&](const lyra::group& g) { vertualfstool::help(""); }));
     cli.add_argument(lyra::command("exit", [&](const lyra::group& g) { vertualfstool::exit(); }));
-    command_create_volume ca{ cli };
-    command_ls_volumes    cb{ cli };
-    command_cd_volume     cc{ cli };
     command_ensureavailable_repository cd{ cli };
     command_ls_repositories ce{ cli };
     //select_mount_command select_mount_cmd{ cli };

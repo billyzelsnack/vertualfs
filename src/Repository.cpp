@@ -1,11 +1,10 @@
 
-#include "GitRepository.hpp"
+#include "Repository.hpp"
 
 #include <filesystem>
 #include <regex>
 #include <string>
 
-#include <easylogging++.h>
 #include <git2.h>
 
 
@@ -47,7 +46,6 @@ vertualfs::GitRepository::~GitRepository()
 vertualfs::GitRepository* vertualfs::GitRepository_Create(const std::string& path)
 {
 	if (!started) { return nullptr; }
-	LOG(INFO) << "vertualfs::GitRepository::create";
 
 	std::filesystem::path stdpath(path);	
 	stdpath.replace_extension(); //-- unify to never having the .git extension
@@ -91,7 +89,6 @@ vertualfs::GitRepository* vertualfs::GitRepository_Create(const std::string& pat
 		printf("attempt git_repository_clone [%s] to [%s]\n", remoteurl.c_str(), openpath.c_str());
 		if (0 != git_clone(&repo, remoteurl.c_str(), openpath.c_str(), nullptr))
 		{
-			LOG(INFO) << "vertualfs::GitFileSystem::create clone failure";
 			const git_error* error = git_error_last();
 			printf("Error: %s\n", error->message);
 			return nullptr;
@@ -105,7 +102,6 @@ vertualfs::GitRepository* vertualfs::GitRepository_Create(const std::string& pat
 	git_reference_free(commitref); //-- todo: can i delete this immediately
 	if(commit == nullptr)
 	{
-		LOG(INFO) << "vertualfs::GitFileSystem::create commit==nullptr";
 		git_repository_free(repo);
 		return nullptr;
 	}

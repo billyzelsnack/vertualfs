@@ -57,12 +57,13 @@ workspace "vertualfs"
       objdir "%{_ACTION}/%{cfg.buildcfg}/int_x64/"
       targetdir "%{_ACTION}/%{cfg.buildcfg}/out_x64/"
       debugdir  "%{_ACTION}/%{cfg.buildcfg}/out_x64/"
-      links { "vertualfs", "git2", "pcre", "zlib", "easyloggingpp.lib" }
+      links { "vertualfs", "git2", "pcre", "zlib", "imgui", "glfw3dll", "opengl32" }
 
       postbuildcommands 
       {
          "{COPY} "..vcpkgdir.."installed/x64-windows/bin/git2.dll %{cfg.targetdir}",
          "{COPY} "..vcpkgdir.."installed/x64-windows/bin/pcre.dll %{cfg.targetdir}",
          "{COPY} "..vcpkgdir.."installed/x64-windows/bin/zlib1.dll %{cfg.targetdir}",
+         "{COPY} "..vcpkgdir.."installed/x64-windows/bin/glfw3.dll %{cfg.targetdir}",
       }
 
