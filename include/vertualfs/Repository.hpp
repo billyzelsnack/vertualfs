@@ -2,6 +2,7 @@
 #ifndef VERTUALFS_GITREPOSITORY_HPP
 #define VERTUALFS_GITREPOSITORY_HPP
 
+#include <filesystem>
 #include <string>
 
 struct git_repository;
@@ -25,6 +26,7 @@ struct vertualfs::GitRepository
 
 namespace vertualfs
 {
+	std::string GitRepository_CreateLocalPath(const std::string& url);
 	vertualfs::GitRepository* GitRepository_Create(const std::string& path);
 	void GitRepository_Shutdown();
 	bool GitRepository_Startup();

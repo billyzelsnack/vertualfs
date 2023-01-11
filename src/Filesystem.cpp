@@ -1,13 +1,17 @@
 
 #include "vertualfs/Filesystem.hpp"
+#include "vertualfs/Repository.hpp"
 
 #include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <regex>
 #include <string>
 
 #include <git2.h>
+#include <nlohmann/json.hpp>
 
-#include "vertualfs/Repository.hpp"
+
 
 
 vertualfs::GitFilesystem::GitFilesystem(vertualfs::GitRepository* repository) : repository(repository)
@@ -47,6 +51,8 @@ bool vertualfs::GitFilesystem::listing(const std::filesystem::path& path, std::v
 {	
 	out_listing.clear();
 
+	std::filesystem::path lscwd;// = "/";
+
 	git_tree* root = nullptr;
 	git_commit_tree(&root, repository->commit);
 	if (root == nullptr) { return false; }
@@ -69,6 +75,7 @@ bool vertualfs::GitFilesystem::listing(const std::filesystem::path& path, std::v
 				git_object_peel((git_object**)&trav, object, GIT_OBJECT_TREE);
 				git_object_free(object);
 				crumbs.push_back(trav);
+				lscwd.append(name);
 				continue;
 			}
 		}
@@ -84,14 +91,42 @@ bool vertualfs::GitFilesystem::listing(const std::filesystem::path& path, std::v
 		const char* name = git_tree_entry_name(entry);
 		if (type == GIT_OBJ_TREE)
 		{
-			//printf("path %s\n", name);
 			out_listing.push_back({ name, true });
 		}
 		else
 		if (type == GIT_OBJ_BLOB)
-		{
-			//printf("file %s\n", name);
-			out_listing.push_back({ name, false });
+		{ 
+			if(std::string(name)=="vertualfs.json")
+			{
+				std::string remoteurl;
+				if (lookup_remote_url("origin", remoteurl))
+				{
+					std::string localpath = GitRepository_CreateLocalPath(remoteurl);
+					//printf("[%s]\n", localpath.c_str());
+
+					std::filesystem::path jsonpath = std::filesystem::path(localpath) / lscwd / std::string(name);
+					jsonpath.make_preferred();
+					//printf("[%s]\n", jsonpath.string().c_str());
+					std::ifstream file(jsonpath);
+					nlohmann::json json;
+					file >> json;
+					//std::cout << json.dump(4) << std::endl;
+					auto& jsonrepos=json.at("repositories");
+					for (auto& jsonrepo : jsonrepos)
+					{
+						std::string url=jsonrepo["url"];
+						std::string localurl = GitRepository_CreateLocalPath(url);
+						//printf("[%s]\n", localurl.c_str());
+						out_listing.push_back({ localurl, true });
+					}
+				}
+
+				//out_listing.push_back({ name, true });
+			}
+			else
+			{
+				out_listing.push_back({ name, false });
+			}
 		}
 	}
 

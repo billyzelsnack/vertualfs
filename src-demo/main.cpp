@@ -54,10 +54,12 @@ std::string crumbsbrowser(const std::vector<std::string>& crumbs)
 }
 
 std::string listingbrowser(const std::vector<std::tuple<std::string,bool>>& listing)
-{  
+{
+    if(listing.empty()) { return ""; }
+
     std::string selection;
 
-    ImGuiTableFlags flags = ImGuiTableFlags_None;// ImGuiTableFlags_BordersInnerH;
+    ImGuiTableFlags flags = ImGuiTableFlags_None;// | ImGuiTableFlags_BordersInnerH;
     if (ImGui::BeginTable("maintable", 1, flags))
     {
         const float ROW_HEIGHT = ImGui::GetTextLineHeightWithSpacing() + 6;
@@ -87,14 +89,12 @@ void hubbrowser(vertualfs::Hub* hub)
     std::vector<std::pair<std::string, bool>> listing;
     hub->filesystem->ls(listing);
 
-
     std::vector<std::string> crumbs;
-    //crumbs.push_back("/");
     for (const auto& subpath : hub->filesystem->cwd){ crumbs.push_back(subpath.string().c_str()); }
     std::string crumbselected = crumbsbrowser(crumbs);
-    if(!crumbselected.empty())//size()>1)
+    if(!crumbselected.empty())
     {
-        std::filesystem::path cwd;// = "/";
+        std::filesystem::path cwd;
         for (const auto& subpath : hub->filesystem->cwd)
         {
             cwd = cwd/subpath.string();
@@ -105,23 +105,27 @@ void hubbrowser(vertualfs::Hub* hub)
         hub->filesystem->cwd = cwd;
     }
 
-    std::string folderselected;
-    {
-        std::vector<std::tuple<std::string, bool>> folderslisting;
-        for (auto& [name, isfolder] : listing) {if(isfolder){ folderslisting.push_back({ name,isfolder }); }}
-        if (folderslisting.size() > 1){ folderselected = listingbrowser(folderslisting); }
-    }
-    {
-        std::vector<std::tuple<std::string, bool>> fileslisting;
-        for (auto& [name, isfolder] : listing){if(!isfolder){ fileslisting.push_back({ name,isfolder }); }}
-        listingbrowser(fileslisting);
-    }
-    if (!folderselected.empty())
+    std::vector<std::tuple<std::string, bool>> folderslisting;
+    for (auto& [name, isfolder] : listing) {if(isfolder){ folderslisting.push_back({ name,isfolder }); }}
+    std::string folderselected = listingbrowser(folderslisting);
+
+    std::vector<std::tuple<std::string, bool>> fileslisting;
+    for (auto& [name, isfolder] : listing){if(!isfolder){ fileslisting.push_back({ name,isfolder }); }}
+    std::string fileselected=listingbrowser(fileslisting);
+    
+    if(!folderselected.empty())
     {
         printf("folderselected[%s]\n", folderselected.c_str());
         hub->filesystem->cd(folderselected);
         printf("cwd[%s]\n", hub->filesystem->cwd.string().c_str());
     }
+
+    if(!fileselected.empty())
+    {
+        printf("fileselected[%s]\n", fileselected.c_str());
+        //hub->filesystem->cd(folderselected);
+    }
+
 
 }
 
@@ -139,8 +143,8 @@ int mainwin(int argc, const char**, GLFWwindow* window)
 {
     if (!vertualfs_startup()) { return EXIT_FAILURE; }
 
-    //std::string huburl="https://gitlab.com/billy.zelsnack/hubexample.git";
-    std::string huburl="https://gitlab.com/telemotor/users/billy/headtest";
+    std::string huburl="https://gitlab.com/billy.zelsnack/hubexample.git";
+    //std::string huburl="https://gitlab.com/telemotor/users/billy/headtest";
     vertualfs::Hub* hub=vertualfs::Hub::create(huburl);
     if (hub == nullptr){ vertualfs_shutdown(); return EXIT_FAILURE; }
 
@@ -198,7 +202,7 @@ int main(int argc, const char** argv)
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // 3.0+ only
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "virtualfsdemo", NULL, NULL);
     if (window == NULL) { return 1; }
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);

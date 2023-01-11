@@ -47,22 +47,20 @@ vertualfs::GitRepository::~GitRepository()
 	git_repository_free(repo);
 }
 
-vertualfs::GitRepository* vertualfs::GitRepository_Create(const std::string& path)
+std::string vertualfs::GitRepository_CreateLocalPath(const std::string& url)
 {
-	if (!started) { return nullptr; }
-
-	std::filesystem::path stdpath(path);	
+	std::filesystem::path stdpath(url);
 	stdpath.replace_extension(); //-- unify to never having the .git extension
 	std::string remoteurl = stdpath.string();
 
-	std::string protocol=stdpath.root_name().string();
-	std::string domain=stdpath.root_directory().string();
+	std::string protocol = stdpath.root_name().string();
+	std::string domain = stdpath.root_directory().string();
 	std::regex url_regex("(https?)://([^/]+)(.*)");
 	std::smatch url_match;
-	if(std::regex_match(remoteurl, url_match, url_regex))
+	if (std::regex_match(remoteurl, url_match, url_regex))
 	{
-		protocol=url_match[1];
-		domain=url_match[2];
+		protocol = url_match[1];
+		domain = url_match[2];
 		std::string modpath = remoteurl;
 		modpath.erase(0, protocol.length() + 2 + domain.length() + 1);
 		stdpath = std::filesystem::path(modpath);
@@ -80,8 +78,22 @@ vertualfs::GitRepository* vertualfs::GitRepository_Create(const std::string& pat
 	//std::cout << "Filename extension: " << stdpath.extension() << std::endl;
 
 	std::string openpath = "vertualfs";
-	if (!domain.empty()){openpath += "/" + domain;}
-	openpath+="/" + stdpath.relative_path().string();
+	if (!domain.empty()) { openpath += "/" + domain; }
+	openpath += "/" + stdpath.relative_path().string();
+
+	return openpath;
+}
+
+vertualfs::GitRepository* vertualfs::GitRepository_Create(const std::string& path)
+{
+	if (!started) { return nullptr; }
+
+	std::string openpath = vertualfs::GitRepository_CreateLocalPath(path);
+
+	std::filesystem::path stdpath(path);
+	stdpath.replace_extension(); //-- unify to never having the .git extension
+	std::string remoteurl = stdpath.string();
+
 
 	//printf("[%s] [%s]\n", remoteurl.c_str(), openpath.c_str());
 	//return nullptr;

@@ -13,13 +13,14 @@ Simple demo of the library.
 # Requirements
 * Windows 10 or 11
 * Visual Studio 2022 (others might work)
-* vcpkg from https://github.com/microsoft/vcpkg
-* git from https://git-scm.com/downloads
-* premake5 https://premake.github.io/
+* vcpkg https://github.com/microsoft/vcpkg
+* git https://git-scm.com/downloads
+* premake5 https://premake.github.io
 
 # Installation
 * vcpkg install libgit2:x64-windows
 * vcpkg install imgui[glfw-binding,opengl3-binding]:x64-windows
+* vcpkg install nlohmann-json:x64-windows
 * git clone https://github.com/juliettef/IconFontCppHeaders.git
 * Change vcpkgdir and reposdir at top of premake5.lua to match yours.
 * premake5 vs2022
