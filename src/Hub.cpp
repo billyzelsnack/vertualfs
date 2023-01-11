@@ -1,5 +1,5 @@
 
-#include "vertualfs/Volume.hpp"
+#include "vertualfs/Hub.hpp"
 
 #include "vertualfs/Filesystem.hpp"
 #include "vertualfs/Repository.hpp"

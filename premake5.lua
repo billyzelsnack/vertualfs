@@ -5,7 +5,7 @@ workspace "vertualfs"
 
    location "%{_ACTION}"
    configurations { "Debug", "Release" }   
-   startproject "vertualfstool"   
+   startproject "vertualfsdemo"   
 
    filter "configurations:Release"
       defines { "DEBUG" }
@@ -44,7 +44,7 @@ workspace "vertualfs"
       {
       }
 
-   project "vertualfstool"
+   project "vertualfsdemo"
       
       kind "ConsoleApp"
       architecture "x64"
@@ -60,8 +60,8 @@ workspace "vertualfs"
       }      
       files 
       { 
-         "src-tool/*.hpp", 
-         "src-tool/*.cpp"
+         "src-demo/*.hpp", 
+         "src-demo/*.cpp"
       }
       libdirs { vcpkgdir.."installed/x64-windows/lib" }
 
