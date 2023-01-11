@@ -7,7 +7,8 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-#include <vertualfs.hpp>
+#include <vertualfs/vertualfs.hpp>
+#include <vertualfs/Volume.hpp>
 
 #include "commands.hpp"
 #include "commandscli.hpp"
@@ -46,6 +47,23 @@ int main2(int argc, const char** argv)
 
     return EXIT_SUCCESS;
 }
+
+
+
+
+
+void volumebrowser(vertualfs::Volume* volume)
+{
+
+}
+
+
+
+
+
+
+
+
 
 
 

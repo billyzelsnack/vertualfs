@@ -1,9 +1,9 @@
 
-#include "vertualfs.hpp"
+#include "vertualfs/vertualfs.hpp"
 
 #include <cstdio>
 
-#include "Repository.hpp"
+#include "vertualfs/Repository.hpp"
 
 
 static bool started = false;

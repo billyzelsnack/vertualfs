@@ -1,5 +1,5 @@
 
-#include "Filesystem.hpp"
+#include "vertualfs/Filesystem.hpp"
 
 #include <filesystem>
 #include <regex>
@@ -7,7 +7,7 @@
 
 #include <git2.h>
 
-#include "Repository.hpp"
+#include "vertualfs/Repository.hpp"
 
 
 vertualfs::GitFilesystem::GitFilesystem(vertualfs::GitRepository* repository) : repository(repository)
