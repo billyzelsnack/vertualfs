@@ -13,45 +13,6 @@
 #include <vertualfs/Hub.hpp>
 #include <vertualfs/vertualfs.hpp>
 
-#include "commands.hpp"
-#include "commandscli.hpp"
-
-
-
-
-
-extern vertualfs::Hub gvolume;
-
-
-
-
-int main2(int argc, const char** argv)
-{
-    if (!vertualfs_startup()) { return false; }
-
-    std::string cliresult;
-    vertualfstool::commandscli(argc, argv, cliresult);
-    //vertualfstool::commandscli(argv[0], "ensureavailable repository c:/repos/headtest tag", cliresult);
-    //vertualfstool::commandscli(argv[0], "ensureavailable repository https://github.com/billyzelsnack/simple_onshape_exportstls.git tag", cliresult);
-    //vertualfstool::commandscli(argv[0], "ensureavailable repository https://gitlab.com/telemotor/users/billy/headtest tag", cliresult);
-    //vertualfstool::commandscli(argv[0], "ensureavailable repository c:/repos/headtest tag", cliresult);
-
-    while(!vertualfstool::exited())
-    {
-        std::cout << vertualfstool::prompt() << std::flush;
-        std::string line;
-        std::getline(std::cin, line);
-
-        if(!vertualfstool::commandscli(argv[0], line, cliresult))
-        { 
-            printf("cliresult [%s]\n",cliresult.c_str()); 
-        }
-    }
-
-    vertualfs_shutdown();
-
-    return EXIT_SUCCESS;
-}
 
 
 
