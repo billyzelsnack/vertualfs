@@ -4,7 +4,11 @@ This codebase is only a few days old and is under heavy development with massive
 
 # vertualfs
 
-VERsioned virTUAL FileSystem library and command-line tool.
+VERsioned virTUAL FileSystem library.
+
+# vertualfsdemo
+
+Simple demo of the library.
 
 # Requirements
 * Windows 10 or 11
