@@ -1,11 +1,11 @@
 
 #include "vertualfs/Repository.hpp"
-
 #include <filesystem>
 #include <regex>
 #include <string>
-
 #include <git2.h>
+
+
 
 
 //-- after an open need to check if the remote has changed
@@ -34,17 +34,15 @@ bool vertualfs::Repository_Startup()
 	return true;
 }
 
-
-vertualfs::Repository::Repository(git_repository* repo, git_commit* commit, git_tree* tree) : repo(repo), commit(commit), tree(tree)
+vertualfs::Repository::Repository(git_repository* repository, git_commit* commit) : repository(repository), commit(commit)
 {
 
 }
 
 vertualfs::Repository::~Repository()
 {
-	git_tree_free(tree);
 	git_commit_free(commit);
-	git_repository_free(repo);
+	git_repository_free(repository);
 }
 
 std::string vertualfs::Repository_CreateLocalPath(const std::string& url)
@@ -122,14 +120,6 @@ vertualfs::Repository* vertualfs::Repository_Create(const std::string& path)
 		return nullptr;
 	}
 
-	git_tree* tree=nullptr;
-	git_commit_tree(&tree, commit);
-	if (tree == nullptr)
-	{
-		git_commit_free(commit);
-		git_repository_free(repo);
-	}
-
-	return new vertualfs::Repository(repo, commit, tree);
+	return new vertualfs::Repository(repo, commit);
 };
 

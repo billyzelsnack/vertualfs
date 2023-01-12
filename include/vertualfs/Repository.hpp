@@ -16,11 +16,10 @@ namespace vertualfs
 
 struct vertualfs::Repository
 {
-	git_repository* repo = nullptr;
+	git_repository* repository = nullptr;
 	git_commit* commit = nullptr;
-	git_tree* tree = nullptr;
 
-	Repository(git_repository* repo, git_commit* commit, git_tree* tree);
+	Repository(git_repository* repo, git_commit* commit);
 	~Repository();
 };
 

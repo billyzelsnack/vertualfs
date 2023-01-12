@@ -1,15 +1,12 @@
 
 #include "vertualfs/Filesystem.hpp"
 #include "vertualfs/Repository.hpp"
-
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <regex>
 #include <string>
-
 #include <git2.h>
-#include <nlohmann/json.hpp>
 
 
 
@@ -34,7 +31,7 @@ bool vertualfs::Filesystem::repo_version(std::string& out_version) const
 	if (0 != git_describe_format_options_init(&format_options, GIT_DESCRIBE_FORMAT_OPTIONS_VERSION)) { return false; }
 
 	git_describe_result* describe_result;
-	if (0 == git_describe_workdir(&describe_result, repository->repo, &describe_options))
+	if (0 == git_describe_workdir(&describe_result, repository->repository, &describe_options))
 	{
 		git_buf buf = { 0 };
 		if (0 == git_describe_format(&buf, describe_result, &format_options))
@@ -71,7 +68,7 @@ bool vertualfs::Filesystem::listing(const std::filesystem::path& path, std::vect
 			if ((type == GIT_OBJ_TREE) && (subpath == name))
 			{
 				git_object* object=nullptr;
-				git_tree_entry_to_object(&object, repository->repo, entry);
+				git_tree_entry_to_object(&object, repository->repository, entry);
 				git_object_peel((git_object**)&trav, object, GIT_OBJECT_TREE);
 				git_object_free(object);
 				crumbs.push_back(trav);
@@ -96,37 +93,7 @@ bool vertualfs::Filesystem::listing(const std::filesystem::path& path, std::vect
 		else
 		if (type == GIT_OBJ_BLOB)
 		{ 
-			if(std::string(name)=="vertualfs.json")
-			{
-				std::string remoteurl;
-				if (lookup_remote_url("origin", remoteurl))
-				{
-					std::string localpath = Repository_CreateLocalPath(remoteurl);
-					//printf("[%s]\n", localpath.c_str());
-
-					std::filesystem::path jsonpath = std::filesystem::path(localpath) / lscwd / std::string(name);
-					jsonpath.make_preferred();
-					//printf("[%s]\n", jsonpath.string().c_str());
-					std::ifstream file(jsonpath);
-					nlohmann::json json;
-					file >> json;
-					//std::cout << json.dump(4) << std::endl;
-					auto& jsonrepos=json.at("repositories");
-					for (auto& jsonrepo : jsonrepos)
-					{
-						std::string url=jsonrepo["url"];
-						std::string localurl = Repository_CreateLocalPath(url);
-						//printf("[%s]\n", localurl.c_str());
-						out_listing.push_back({ localurl, true });
-					}
-				}
-
-				//out_listing.push_back({ name, true });
-			}
-			else
-			{
-				out_listing.push_back({ name, false });
-			}
+			out_listing.push_back({ name, false });
 		}
 	}
 
@@ -150,7 +117,6 @@ bool vertualfs::Filesystem::cd(const std::filesystem::path& relativepath)
 	return true;
 }
 
-
 vertualfs::Filesystem* vertualfs::Filesystem::create(vertualfs::Repository* repository)
 {
 	if (repository == nullptr) { return nullptr; }
@@ -158,14 +124,12 @@ vertualfs::Filesystem* vertualfs::Filesystem::create(vertualfs::Repository* repo
 	return new vertualfs::Filesystem(repository);
 }
 
-
-
 bool vertualfs::Filesystem::lookup_remote_url(const std::string& name, std::string& out_url) const
 {
 	out_url.clear();
 
 	git_remote* remote = nullptr;
-	if(0!=git_remote_lookup(&remote, repository->repo, name.c_str())){return false;}
+	if(0!=git_remote_lookup(&remote, repository->repository, name.c_str())){return false;}
 	out_url=std::string(git_remote_url(remote));
 	git_remote_free(remote);
 
