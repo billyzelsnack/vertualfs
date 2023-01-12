@@ -10,8 +10,8 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <vertualfs/Filesystem.hpp>
-#include <vertualfs/Hub.hpp>
 #include <vertualfs/vertualfs.hpp>
+#include <vertualfs/Volume.hpp>
 
 
 
@@ -84,25 +84,25 @@ std::string listingbrowser(const std::vector<std::tuple<std::string,bool>>& list
     return selection;
 }
 
-void hubbrowser(vertualfs::Hub* hub)
+void volumebrowser(vertualfs::Volume* volume)
 {
     std::vector<std::pair<std::string, bool>> listing;
-    hub->filesystem->ls(listing);
+    volume->filesystem->ls(listing);
 
     std::vector<std::string> crumbs;
-    for (const auto& subpath : hub->filesystem->cwd){ crumbs.push_back(subpath.string().c_str()); }
+    for (const auto& subpath : volume->filesystem->cwd){ crumbs.push_back(subpath.string().c_str()); }
     std::string crumbselected = crumbsbrowser(crumbs);
     if(!crumbselected.empty())
     {
         std::filesystem::path cwd;
-        for (const auto& subpath : hub->filesystem->cwd)
+        for (const auto& subpath : volume->filesystem->cwd)
         {
             cwd = cwd/subpath.string();
             if (subpath.string() == crumbselected) { break; }
         }
 
         printf("crumbselected[%s][%s]\n", crumbselected.c_str(),cwd.string().c_str());
-        hub->filesystem->cwd = cwd;
+        volume->filesystem->cwd = cwd;
     }
 
     std::vector<std::tuple<std::string, bool>> folderslisting;
@@ -116,8 +116,8 @@ void hubbrowser(vertualfs::Hub* hub)
     if(!folderselected.empty())
     {
         printf("folderselected[%s]\n", folderselected.c_str());
-        hub->filesystem->cd(folderselected);
-        printf("cwd[%s]\n", hub->filesystem->cwd.string().c_str());
+        volume->filesystem->cd(folderselected);
+        printf("cwd[%s]\n", volume->filesystem->cwd.string().c_str());
     }
 
     if(!fileselected.empty())
@@ -143,10 +143,10 @@ int mainwin(int argc, const char**, GLFWwindow* window)
 {
     if (!vertualfs_startup()) { return EXIT_FAILURE; }
 
-    std::string huburl="https://gitlab.com/billy.zelsnack/hubexample.git";
+    std::string volumeurl="https://gitlab.com/billy.zelsnack/hubexample.git";
     //std::string huburl="https://gitlab.com/telemotor/users/billy/headtest";
-    vertualfs::Hub* hub=vertualfs::Hub::create(huburl);
-    if (hub == nullptr){ vertualfs_shutdown(); return EXIT_FAILURE; }
+    vertualfs::Volume* volume=vertualfs::Volume::create(volumeurl);
+    if (volume == nullptr){ vertualfs_shutdown(); return EXIT_FAILURE; }
 
     while (!glfwWindowShouldClose(window))
     {
@@ -156,9 +156,9 @@ int mainwin(int argc, const char**, GLFWwindow* window)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        std::string title = "Hub [" + huburl + "]";
+        std::string title = "Volume [" + volumeurl + "]";
         ImGui::Begin(title.c_str());
-        hubbrowser(hub);
+        volumebrowser(volume);
         ImGui::End();
 
         ImGui::Render();

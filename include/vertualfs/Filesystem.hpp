@@ -1,28 +1,29 @@
 
-#ifndef VERTUALFS_GITFILESYSTEM_HPP
-#define VERTUALFS_GITFILESYSTEM_HPP
+#ifndef VERTUALFS_FILESYSTEM_HPP
+#define VERTUALFS_FILESYSTEM_HPP
 
 
 #include<filesystem>
 #include<string>
 #include<vector>
 
+
 namespace vertualfs
 {
-	class  GitFilesystem;
-	struct GitRepository;
+	class  Filesystem;
+	struct Repository;
 }
 
-class vertualfs::GitFilesystem
+class vertualfs::Filesystem
 {
 
 private:
 
-	GitFilesystem(vertualfs::GitRepository* repository);
+	Filesystem(vertualfs::Repository* repository);
 
 public:
 
-	~GitFilesystem();
+	~Filesystem();
 
 public:
 
@@ -33,11 +34,11 @@ public:
 	bool ls(std::vector<std::pair<std::string, bool>>& out_listing);
 	bool cd(const std::filesystem::path& relativepath);
 
-	static vertualfs::GitFilesystem* create(vertualfs::GitRepository* repository);
+	static vertualfs::Filesystem* create(vertualfs::Repository* repository);
 
 public:
 
-	vertualfs::GitRepository* repository = nullptr;
+	vertualfs::Repository* repository = nullptr;
 	std::filesystem::path cwd="/";
 
 };

@@ -15,7 +15,7 @@ bool vertualfs_startup()
 {
 	if(started){ return true; }
 
-	if(!vertualfs::GitRepository_Startup()){return false;}
+	if(!vertualfs::Repository_Startup()){return false;}
 	started = true;
 
 	return true;
@@ -25,7 +25,7 @@ void vertualfs_shutdown()
 {
 	if (!started) { return; }
 
-	vertualfs::GitRepository_Shutdown();
+	vertualfs::Repository_Shutdown();
 }
 
 

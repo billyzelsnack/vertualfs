@@ -14,15 +14,15 @@
 
 
 
-vertualfs::GitFilesystem::GitFilesystem(vertualfs::GitRepository* repository) : repository(repository)
+vertualfs::Filesystem::Filesystem(vertualfs::Repository* repository) : repository(repository)
 {
 }
 
-vertualfs::GitFilesystem::~GitFilesystem()
+vertualfs::Filesystem::~Filesystem()
 {
 }
 
-bool vertualfs::GitFilesystem::repo_version(std::string& out_version) const
+bool vertualfs::Filesystem::repo_version(std::string& out_version) const
 {
 	git_describe_options describe_options;
 	memset(&describe_options, 0, sizeof(describe_options));
@@ -47,7 +47,7 @@ bool vertualfs::GitFilesystem::repo_version(std::string& out_version) const
 }
 
 
-bool vertualfs::GitFilesystem::listing(const std::filesystem::path& path, std::vector<std::pair<std::string, bool>>& out_listing)
+bool vertualfs::Filesystem::listing(const std::filesystem::path& path, std::vector<std::pair<std::string, bool>>& out_listing)
 {	
 	out_listing.clear();
 
@@ -101,7 +101,7 @@ bool vertualfs::GitFilesystem::listing(const std::filesystem::path& path, std::v
 				std::string remoteurl;
 				if (lookup_remote_url("origin", remoteurl))
 				{
-					std::string localpath = GitRepository_CreateLocalPath(remoteurl);
+					std::string localpath = Repository_CreateLocalPath(remoteurl);
 					//printf("[%s]\n", localpath.c_str());
 
 					std::filesystem::path jsonpath = std::filesystem::path(localpath) / lscwd / std::string(name);
@@ -115,7 +115,7 @@ bool vertualfs::GitFilesystem::listing(const std::filesystem::path& path, std::v
 					for (auto& jsonrepo : jsonrepos)
 					{
 						std::string url=jsonrepo["url"];
-						std::string localurl = GitRepository_CreateLocalPath(url);
+						std::string localurl = Repository_CreateLocalPath(url);
 						//printf("[%s]\n", localurl.c_str());
 						out_listing.push_back({ localurl, true });
 					}
@@ -135,13 +135,13 @@ bool vertualfs::GitFilesystem::listing(const std::filesystem::path& path, std::v
 	return true;
 }
 
-bool vertualfs::GitFilesystem::ls(std::vector<std::pair<std::string, bool>>& out_listing)
+bool vertualfs::Filesystem::ls(std::vector<std::pair<std::string, bool>>& out_listing)
 {
 	if (!listing(cwd.string(), out_listing)) { return false; }
 	return true;
 }
 
-bool vertualfs::GitFilesystem::cd(const std::filesystem::path& relativepath)                          
+bool vertualfs::Filesystem::cd(const std::filesystem::path& relativepath)                          
 {
 	std::filesystem::path newcwd = cwd.append(relativepath.string());
 	cwd = newcwd;
@@ -151,16 +151,16 @@ bool vertualfs::GitFilesystem::cd(const std::filesystem::path& relativepath)
 }
 
 
-vertualfs::GitFilesystem* vertualfs::GitFilesystem::create(vertualfs::GitRepository* repository)
+vertualfs::Filesystem* vertualfs::Filesystem::create(vertualfs::Repository* repository)
 {
 	if (repository == nullptr) { return nullptr; }
 
-	return new vertualfs::GitFilesystem(repository);
+	return new vertualfs::Filesystem(repository);
 }
 
 
 
-bool vertualfs::GitFilesystem::lookup_remote_url(const std::string& name, std::string& out_url) const
+bool vertualfs::Filesystem::lookup_remote_url(const std::string& name, std::string& out_url) const
 {
 	out_url.clear();
 

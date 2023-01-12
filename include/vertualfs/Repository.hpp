@@ -1,6 +1,6 @@
 
-#ifndef VERTUALFS_GITREPOSITORY_HPP
-#define VERTUALFS_GITREPOSITORY_HPP
+#ifndef VERTUALFS_REPOSITORY_HPP
+#define VERTUALFS_REPOSITORY_HPP
 
 #include <filesystem>
 #include <string>
@@ -11,25 +11,25 @@ struct git_tree;
 
 namespace vertualfs
 {
-	struct GitRepository;
+	struct Repository;
 }
 
-struct vertualfs::GitRepository
+struct vertualfs::Repository
 {
 	git_repository* repo = nullptr;
 	git_commit* commit = nullptr;
 	git_tree* tree = nullptr;
 
-	GitRepository(git_repository* repo, git_commit* commit, git_tree* tree);
-	~GitRepository();
+	Repository(git_repository* repo, git_commit* commit, git_tree* tree);
+	~Repository();
 };
 
 namespace vertualfs
 {
-	std::string GitRepository_CreateLocalPath(const std::string& url);
-	vertualfs::GitRepository* GitRepository_Create(const std::string& path);
-	void GitRepository_Shutdown();
-	bool GitRepository_Startup();
+	std::string Repository_CreateLocalPath(const std::string& url);
+	vertualfs::Repository* Repository_Create(const std::string& path);
+	void Repository_Shutdown();
+	bool Repository_Startup();
 }
 
 #endif

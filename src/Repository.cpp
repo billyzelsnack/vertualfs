@@ -14,7 +14,7 @@
 
 static bool started = false;
 
-void vertualfs::GitRepository_Shutdown()
+void vertualfs::Repository_Shutdown()
 {
 	if (!started) { return; }
 
@@ -24,7 +24,7 @@ void vertualfs::GitRepository_Shutdown()
 	return;
 }
 
-bool vertualfs::GitRepository_Startup()
+bool vertualfs::Repository_Startup()
 {
 	if (started) { return true; }
 
@@ -35,19 +35,19 @@ bool vertualfs::GitRepository_Startup()
 }
 
 
-vertualfs::GitRepository::GitRepository(git_repository* repo, git_commit* commit, git_tree* tree) : repo(repo), commit(commit), tree(tree)
+vertualfs::Repository::Repository(git_repository* repo, git_commit* commit, git_tree* tree) : repo(repo), commit(commit), tree(tree)
 {
 
 }
 
-vertualfs::GitRepository::~GitRepository()
+vertualfs::Repository::~Repository()
 {
 	git_tree_free(tree);
 	git_commit_free(commit);
 	git_repository_free(repo);
 }
 
-std::string vertualfs::GitRepository_CreateLocalPath(const std::string& url)
+std::string vertualfs::Repository_CreateLocalPath(const std::string& url)
 {
 	std::filesystem::path stdpath(url);
 	stdpath.replace_extension(); //-- unify to never having the .git extension
@@ -84,11 +84,11 @@ std::string vertualfs::GitRepository_CreateLocalPath(const std::string& url)
 	return openpath;
 }
 
-vertualfs::GitRepository* vertualfs::GitRepository_Create(const std::string& path)
+vertualfs::Repository* vertualfs::Repository_Create(const std::string& path)
 {
 	if (!started) { return nullptr; }
 
-	std::string openpath = vertualfs::GitRepository_CreateLocalPath(path);
+	std::string openpath = vertualfs::Repository_CreateLocalPath(path);
 
 	std::filesystem::path stdpath(path);
 	stdpath.replace_extension(); //-- unify to never having the .git extension
@@ -130,6 +130,6 @@ vertualfs::GitRepository* vertualfs::GitRepository_Create(const std::string& pat
 		git_repository_free(repo);
 	}
 
-	return new vertualfs::GitRepository(repo, commit, tree);
+	return new vertualfs::Repository(repo, commit, tree);
 };
 
