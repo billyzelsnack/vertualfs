@@ -11,11 +11,8 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-#include <nlohmann/json.hpp>
 #include <vertualfs/Filesystem.hpp>
-#include <vertualfs/Repository.hpp>
 #include <vertualfs/vertualfs.hpp>
-#include <vertualfs/Volume.hpp>
 
 
 std::unordered_map<std::filesystem::path,std::string> gselectedfiles;
@@ -26,7 +23,8 @@ bool fileviewer(const std::filesystem::path& localpath)
 {
     //ImGui::Text("[%s]", localpath.string().c_str());
     std::ifstream file(localpath);
-    if (!file.good()) { return false; }    
+
+    if (!file.good()) { return false; }
     file.seekg(0, std::ios::end);
     std::streamoff filesize = file.tellg();
     file.seekg(0, std::ios::beg);
@@ -37,42 +35,23 @@ bool fileviewer(const std::filesystem::path& localpath)
         (extension.empty()) ||
         (extension == ".h") ||
         (extension == ".c") ||
+        (extension == ".md") ||
+        (extension == ".js") ||
         (extension == ".hpp") ||
         (extension == ".cpp") ||
         (extension == ".lua") ||
-        (extension == ".js") ||
         (extension == ".txt") ||
         (extension == ".html") ||
-        (extension == ".json") ||
-        (extension == ".md")
+        (extension == ".json")
         )
     {
         std::string text((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-
-        if (extension == ".json")
-        {
-            nlohmann::json json;
-            json = nlohmann::json::parse(text, nullptr, false);
-            if (!json.is_discarded())
-            {
-                std::string dump = json.dump(4);
-                ImGui::TextUnformatted(dump.c_str(), dump.c_str() + dump.size());
-            }
-            else
-            {
-                ImGui::Text("[json parse error]");
-            }
-        }
-        else
-        {
-            ImGui::TextUnformatted(text.c_str(), text.c_str() + text.size());
-        }
+        ImGui::TextUnformatted(text.c_str(), text.c_str() + text.size());
     }
     else
     {
         ImGui::Text("[unknown file extension]");
     }
-
 
     file.close();
 
@@ -147,29 +126,29 @@ std::string listingbrowser(const std::vector<std::tuple<std::string,bool>>& list
 }
 
 //-- rootname should be computed and not passed in
-void volumebrowser(const std::string& rootname, vertualfs::Volume* volume)
+void filesystembrowser(const std::string& rootname, vertualfs::Filesystem* filesystem)
 {
     std::vector<std::pair<std::string, bool>> listing;
-    volume->filesystem->ls(listing);
+    filesystem->ls(listing);
 
     std::vector<std::string> crumbs;
-    for (const auto& subpath : volume->filesystem->cwd){ crumbs.push_back(subpath.string().c_str()); }
+    for (const auto& subpath : filesystem->cwd){ crumbs.push_back(subpath.string().c_str()); }
     std::string crumbselected = crumbsbrowser(rootname,crumbs);
     if(!crumbselected.empty())
     {
         std::filesystem::path cwd;
-        for (const auto& subpath : volume->filesystem->cwd)
+        for (const auto& subpath : filesystem->cwd)
         {
             cwd = cwd/subpath.string();
             if (subpath.string() == crumbselected) { break; }
         }
 
         printf("crumbselected[%s][%s]\n", crumbselected.c_str(),cwd.string().c_str());
-        volume->filesystem->cwd = cwd;
+        filesystem->cwd = cwd;
     }
 
     std::string fileselected;
-    if(gselectedfiles.count(volume->filesystem->cwd) > 0){ fileselected = gselectedfiles[volume->filesystem->cwd]; }
+    if(gselectedfiles.count(filesystem->cwd) > 0){ fileselected = gselectedfiles[filesystem->cwd]; }
 
     std::vector<std::tuple<std::string, bool>> folderslisting;
     for (auto& [name, isfolder] : listing) {if(isfolder){ folderslisting.push_back({ name,isfolder }); }}
@@ -181,30 +160,30 @@ void volumebrowser(const std::string& rootname, vertualfs::Volume* volume)
     
     if(!folderselected.empty())
     {
-        volume->filesystem->cd(folderselected);
+        filesystem->cd(folderselected);
     }
 
     //ImGui::Text("cwd[%s]", volume->filesystem->cwd.string().c_str());
 
     if(!fileselected.empty())
     {
-        if(gselectedfiles.count(volume->filesystem->cwd)>0 && gselectedfiles[volume->filesystem->cwd]==fileselected)
+        if(gselectedfiles.count(filesystem->cwd)>0 && gselectedfiles[filesystem->cwd]==fileselected)
         {
-            gselectedfiles.erase(volume->filesystem->cwd);
+            gselectedfiles.erase(filesystem->cwd);
         }
         else
         {
-            gselectedfiles[volume->filesystem->cwd] = fileselected;
+            gselectedfiles[filesystem->cwd] = fileselected;
         }        
     }
 
-    if(gselectedfiles.count(volume->filesystem->cwd) > 0) 
+    if(gselectedfiles.count(filesystem->cwd) > 0) 
     { 
         std::string remoteurl;
-        if (volume->filesystem->lookup_remote_url("origin", remoteurl))
+        if(filesystem->lookup_remote_url("origin", remoteurl))
         {
-            std::string localpath = volume->filesystem->cwd.string();
-            localpath=vertualfs::Repository_CreateLocalPath(remoteurl)+localpath+"/"+gselectedfiles[volume->filesystem->cwd];
+            std::string localpath = filesystem->cwd.string();
+            localpath=vertualfs::Filesystem_CreateLocalPath(remoteurl)+localpath+"/"+gselectedfiles[filesystem->cwd];
             //printf("[%s]\n", localpath.c_str());
             ImGui::Separator();
             fileviewer(localpath);
@@ -221,9 +200,9 @@ int mainwin(int argc, const char**, GLFWwindow* window)
 {
     if (!vertualfs_startup()) { return EXIT_FAILURE; }
 
-    std::filesystem::path volumeurl = "https://gitlab.com/telemotor/users/billy/headtest";
-    vertualfs::Volume* volume=vertualfs::Volume::create(volumeurl);
-    std::string nextvolumeurl = volumeurl.string();
+    std::filesystem::path repositoryurl = "https://gitlab.com/telemotor/users/billy/headtest";
+    vertualfs::Filesystem* filesystem=vertualfs::Filesystem::create(repositoryurl.string());
+    std::string nextrepositoryurl = repositoryurl.string();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -235,21 +214,22 @@ int mainwin(int argc, const char**, GLFWwindow* window)
 
         ImGui::Begin("volumebrowser", nullptr, ImGuiWindowFlags_NoScrollbar);        
         ImGui::BeginChild("Scrolling Region", ImVec2(0, ImGui::GetWindowHeight()-60), false, ImGuiWindowFlags_NoResize);
-        if (volume != nullptr)
+        if(filesystem!= nullptr)
         {
-            std::filesystem::path urlcopy = volumeurl;
+            std::filesystem::path urlcopy = repositoryurl;
             ImGui::Text((urlcopy.replace_filename("")).string().c_str());
-            volumebrowser(volumeurl.stem().string(), volume);
+            filesystembrowser(repositoryurl.stem().string(), filesystem);
         }
         ImGui::EndChild();
         ImGui::Text("repository:"); ImGui::SameLine();
         ImGui::PushItemWidth(-1);
-        char buffer[1024]; strcpy_s(buffer, 1024, nextvolumeurl.c_str());
+        char buffer[1024]; strcpy_s(buffer, 1024, repositoryurl.string().c_str());
         if (ImGui::InputText("", buffer, 1024, ImGuiInputTextFlags_EnterReturnsTrue))
         {
-            nextvolumeurl = buffer;
-            volumeurl = nextvolumeurl;
-            volume = vertualfs::Volume::create(volumeurl);
+            nextrepositoryurl = buffer;
+            repositoryurl = nextrepositoryurl;
+            delete filesystem;
+            filesystem = vertualfs::Filesystem::create(repositoryurl.string());
         }
         ImGui::PopItemWidth();
         ImGui::End();

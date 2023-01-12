@@ -7,21 +7,13 @@
 
 
 
-vertualfs::Volume* vertualfs::Volume::create(const std::filesystem::path& hubpath)
+vertualfs::Volume* vertualfs::Volume::create(const std::filesystem::path& path)
 {
-	vertualfs::Repository* repository = vertualfs::Repository_Create(hubpath.string());
-	if(repository == nullptr) { return nullptr; }
-
-	vertualfs::Filesystem* filesystem = vertualfs::Filesystem::create(repository);
-	if(filesystem == nullptr)
-	{
-		delete repository;
-		return nullptr;
-	}
+	vertualfs::Filesystem* filesystem = vertualfs::Filesystem::create(path.string());
+	if(filesystem == nullptr){ return nullptr; }
 
 	Volume* volume = new Volume();
-	volume->availableRepositories.push_back(repository);
-	volume->filesystem = filesystem;
+	volume->availableFilesystems.push_back(filesystem);
 	
 	return volume;
 }

@@ -8,10 +8,13 @@
 #include<vector>
 
 
+struct git_repository;
+struct git_commit;
+struct git_tree;
+
 namespace vertualfs
 {
 	class  Filesystem;
-	struct Repository;
 }
 
 class vertualfs::Filesystem
@@ -19,7 +22,7 @@ class vertualfs::Filesystem
 
 private:
 
-	Filesystem(vertualfs::Repository* repository);
+	Filesystem( git_repository* repository, git_commit* commit );
 
 public:
 
@@ -34,14 +37,22 @@ public:
 	bool ls(std::vector<std::pair<std::string, bool>>& out_listing);
 	bool cd(const std::filesystem::path& relativepath);
 
-	static vertualfs::Filesystem* create(vertualfs::Repository* repository);
+	static vertualfs::Filesystem* create(const std::string& path);
 
 public:
 
-	vertualfs::Repository* repository = nullptr;
-	std::filesystem::path cwd="/";
+	git_repository* repository = nullptr;
+	git_commit* commit = nullptr;
+	std::filesystem::path cwd = "/";
 
 };
+
+namespace vertualfs
+{
+	std::string Filesystem_CreateLocalPath(const std::string& url);
+	void Filesystem_Shutdown();
+	bool Filesystem_Startup();
+}
 
 
 #endif

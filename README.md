@@ -20,7 +20,6 @@ Simple demo of the library.
 # Installation
 * vcpkg install libgit2:x64-windows
 * vcpkg install imgui[glfw-binding,opengl3-binding]:x64-windows
-* vcpkg install nlohmann-json:x64-windows
 * git clone https://github.com/juliettef/IconFontCppHeaders.git
 * Change vcpkgdir and reposdir at top of premake5.lua to match yours.
 * premake5 vs2022

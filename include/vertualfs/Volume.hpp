@@ -9,17 +9,14 @@
 namespace vertualfs
 {
     class Filesystem;
-    struct Repository;
     struct Volume;
 }
 
 struct vertualfs::Volume
 {
-    //std::unordered_map<std::filesystem::path, vertualfs::GitRepository*> availableRepositories;
-    std::vector<vertualfs::Repository*> availableRepositories;
-    vertualfs::Filesystem* filesystem = nullptr;
+    std::vector<vertualfs::Filesystem*> availableFilesystems;
 
-    static vertualfs::Volume* create(const std::filesystem::path& hubpath);
+    static vertualfs::Volume* create(const std::filesystem::path& path);
 private:
     Volume() {}
 };

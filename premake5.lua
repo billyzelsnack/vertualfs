@@ -1,3 +1,4 @@
+
 local vcpkgdir="c:/vcpkg/"
 local reposdir="c:/repos/"
 
@@ -5,7 +6,7 @@ workspace "vertualfs"
 
    location "%{_ACTION}"
    configurations { "Debug", "Release" }   
-   startproject "vertualfsdemo"   
+   startproject "vertualfsdemo"
 
    filter "configurations:Release"
       defines { "DEBUG" }
