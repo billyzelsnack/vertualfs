@@ -1,6 +1,6 @@
 # Development status
 
-This codebase is only a few days old and is under heavy development with massive changes being made daily. It also only has minimal value at this point. Wait for the first release.
+This codebase is only a few days old and is under heavy development with massive changes being made daily. It also only has minimal value at this point. Scope originally was much larger and has evolved into not much more than a libgit2 wrapper with a demo browser. Wait for the first release. 
 
 # vertualfs
 
