@@ -9,8 +9,22 @@ static bool started = false;
 
 
 
+std::filesystem::path vertualfs::make_preferred(const std::filesystem::path& path)
+{
+	std::string spath = path.string();
+	std::replace(spath.begin(), spath.end(), '\\', '/');
+	return std::filesystem::path(spath);
+}
 
-bool vertualfs_startup()
+void vertualfs::shutdown()
+{
+	printf("shutdown\n");
+	if (!started) { return; }
+
+	vertualfs::GitFilesystem_Shutdown();
+}
+
+bool vertualfs::startup()
 {
 	printf("startup\n");
 	if(started){ return true; }
@@ -19,13 +33,5 @@ bool vertualfs_startup()
 	started = true;
 
 	return true;
-}
-
-void vertualfs_shutdown()
-{
-	printf("shutdown\n");
-	if (!started) { return; }
-
-	vertualfs::GitFilesystem_Shutdown();
 }
 

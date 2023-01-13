@@ -3,6 +3,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 
@@ -14,6 +15,7 @@
 #include <curlpp/Options.hpp>
 #include <httplib.h>
 #include <nlohmann/json.hpp>
+#include <vertualfs/vertualfs.hpp>
 
 using json_t = nlohmann::json;
 
@@ -89,7 +91,7 @@ static std::string http_request_octet(const std::string& authorization, const st
 //-- GitApiFilesystem
 //--
 
-vertualfs::GitApiFilesystem::GitApiFilesystem()
+vertualfs::GitApiFilesystem::GitApiFilesystem(const std::filesystem::path& url) : url(url)
 {
 
 }
@@ -101,29 +103,50 @@ vertualfs::GitApiFilesystem::~GitApiFilesystem()
 
 bool vertualfs::GitApiFilesystem::cd(const std::filesystem::path& relativepath)
 {
-    return false;
+    cwd /= relativepath;
+    printf("cwd[%s]\n", cwd.string().c_str());
+
+    std::filesystem::path apiurl = vertualfs::make_preferred(url /std::filesystem::path("contents") / cwd);
+    printf("apiurl[%s]\n", apiurl.string().c_str());
+
+    std::string redirectUrl;
+    cwdjson = http_request_json("", apiurl.string(), redirectUrl, true);
+    printf("redirectUrl[%s]\n", redirectUrl.c_str());
+    if (cwdjson.empty()) { return false; }
+    //printf("[%s]\n", cwdjson.dump(4).c_str());
+
+
+    return true;
 }
 
 bool vertualfs::GitApiFilesystem::listing(const std::filesystem::path& path, std::vector<std::pair<std::string, bool>>& out_listing)
 {
-    return false;
+    //-- todo: only paths that start from root are valid
+    if(!cd(path)){return false;}
+    
+    //printf("[%s]\n", cwdjson.dump(4).c_str());
+
+    for (auto& element : cwdjson)
+    {
+        std::string name = element["name"].get<std::string>();
+        std::string type = element["type"].get<std::string>();
+
+        out_listing.push_back({name, type == "dir"});
+        //printf("[%s][%s]\n", name.c_str(), type.c_str());
+    }
+
+    return true;
 }
 
 bool vertualfs::GitApiFilesystem::ls(std::vector<std::pair<std::string, bool>>& out_listing)
 {
-    return false;
+    return listing(cwd,out_listing);
 }
 
-vertualfs::GitApiFilesystem* vertualfs::GitApiFilesystem::create()
+vertualfs::GitApiFilesystem* vertualfs::GitApiFilesystem::create(const std::filesystem::path& url)
 {
-    std::string url = "https://api.github.com/repos/billyzelsnack/vertualfs/contents";
-    std::string redirectUrl;
-    json_t json = http_request_json("", url, redirectUrl, true);
-    printf("redirectUrl[%s]\n", redirectUrl.c_str());
-    if (json.empty()) { return nullptr; }
-    printf("[%s]\n", json.dump(4).c_str());
-
-    return new GitApiFilesystem();
+    //-- todo: if create returns nothing more than the constructor then just get rid of create and make the constructor public.
+    return new GitApiFilesystem(url);
 }
 
 

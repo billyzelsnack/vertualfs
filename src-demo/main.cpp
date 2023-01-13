@@ -11,6 +11,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <vertualfs/Filesystem.hpp>
 #include <vertualfs/GitApiFilesystem.hpp>
 #include <vertualfs/GitFilesystem.hpp>
 #include <vertualfs/vertualfs.hpp>
@@ -199,11 +200,16 @@ void filesystembrowser(const std::string& rootname, vertualfs::GitFilesystem* fi
 
 int mainwin(int argc, const char**, GLFWwindow* window)
 {
-    if (!vertualfs_startup()) { return EXIT_FAILURE; }
+    if (!vertualfs::startup()) { return EXIT_FAILURE; }
 
-    vertualfs::GitApiFilesystem* apifilesystem = vertualfs::GitApiFilesystem::create();
+    /*
+    std::string apiurl = "https://api.github.com/repos/billyzelsnack/vertualfs";
+    vertualfs::GitApiFilesystem* apifilesystem = vertualfs::GitApiFilesystem::create(apiurl);
+    if (apifilesystem == nullptr) { return EXIT_FAILURE; }
+    std::vector<std::pair<std::string, bool>> listing;
+    apifilesystem->listing("", listing);
     return EXIT_SUCCESS;
-
+    */
 
     std::filesystem::path repositoryurl = "https://gitlab.com/telemotor/users/billy/headtest";
     vertualfs::GitFilesystem* filesystem=vertualfs::GitFilesystem::create(repositoryurl.string());
@@ -250,7 +256,7 @@ int mainwin(int argc, const char**, GLFWwindow* window)
         glfwSwapBuffers(window);
     }
 
-    //vertualfs_shutdown();
+    vertualfs::shutdown();
     return EXIT_SUCCESS;
 }
 
