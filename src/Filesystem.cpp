@@ -200,8 +200,9 @@ std::string vertualfs::Filesystem_CreateLocalPath(const std::string& url)
 	else
 	{
 		domain = protocol;
-		domain.erase(std::remove(domain.begin(), domain.end(), ':'), domain.end());
+		//domain.erase(std::remove(domain.begin(), domain.end(), ':'), domain.end());
 	}
+	domain.erase(std::remove(domain.begin(), domain.end(), ':'), domain.end());
 	//std::cout << "Protocol: " << protocol << std::endl;
 	//std::cout << "Domain: " << domain << std::endl;
 	//std::cout << "Path: " << stdpath.relative_path() << std::endl;
