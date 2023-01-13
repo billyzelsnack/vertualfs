@@ -14,17 +14,23 @@ namespace vertualfs
 class vertualfs::GitApiFilesystem : public vertualfs::Filesystem
 {
 
+private:
+
+	GitApiFilesystem();
+
+public:
+
+	~GitApiFilesystem();
+
 public:
 
 	virtual bool cd(const std::filesystem::path& relativepath) override;
 	virtual bool listing(const std::filesystem::path& path, std::vector<std::pair<std::string, bool>>& out_listing) override;
 	virtual bool ls(std::vector<std::pair<std::string, bool>>& out_listing) override;
 
+	static vertualfs::GitApiFilesystem* create();
+
 };
-
-
-
-
 
 
 #endif

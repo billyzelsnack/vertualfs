@@ -12,6 +12,7 @@ static bool started = false;
 
 bool vertualfs_startup()
 {
+	printf("startup\n");
 	if(started){ return true; }
 
 	if(!vertualfs::GitFilesystem_Startup()){return false;}
@@ -22,10 +23,9 @@ bool vertualfs_startup()
 
 void vertualfs_shutdown()
 {
+	printf("shutdown\n");
 	if (!started) { return; }
 
 	vertualfs::GitFilesystem_Shutdown();
 }
-
-
 

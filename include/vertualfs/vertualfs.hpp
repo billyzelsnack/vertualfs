@@ -6,13 +6,12 @@
 
 namespace vertualfs
 {
+	struct Vertualfs;
 }
 
 
 bool vertualfs_startup();
 void vertualfs_shutdown();
-
-
 
 
 

@@ -22,7 +22,7 @@ using json_t = nlohmann::json;
 //-- http
 //--
 
-std::string static http_request(const std::string& authorization, const std::string& url, const std::string& accept, std::string& out_redirectUrl, bool verbose)
+static std::string http_request(const std::string& authorization, const std::string& url, const std::string& accept, std::string& out_redirectUrl, bool verbose)
 {
     out_redirectUrl.clear();
 
@@ -33,8 +33,9 @@ std::string static http_request(const std::string& authorization, const std::str
         curlpp::Easy request;
 
         std::list<std::string> header;
-        header.push_back("accept: " + accept);
-        header.push_back("Authorization: " + authorization);
+        header.push_back("User-Agent: vertualfs");
+        if (!authorization.empty()) { header.push_back("Authorization: " + authorization); }
+        if (!accept.empty()) { header.push_back("Accept: " + accept); }
         request.setOpt(curlpp::options::HttpHeader(header));
         request.setOpt(curlpp::options::Url(url));
         request.setOpt(curlpp::options::Verbose(verbose));
@@ -57,14 +58,28 @@ std::string static http_request(const std::string& authorization, const std::str
     return stream.str();
 }
 
-json_t static http_request_json(const std::string authorization, const std::string& url, std::string& out_redirectUrl, bool verbose)
+static json_t http_request_json(const std::string authorization, const std::string& url, std::string& out_redirectUrl, bool verbose)
 {
     std::string result = http_request(authorization, url, "application/json;charset=UTF-8;qs=0.09", out_redirectUrl, verbose);
+    //std::string result = http_request(authorization, url, "application/vnd.github+json", out_redirectUrl, verbose);
     if (result.empty()) { return json_t(); }
-    return json_t::parse(result);
+    
+    
+    try
+    {
+        return json_t::parse(result);
+    }
+    catch (const json_t::parse_error& e)
+    {
+        std::cout << "parse error: " << e.what() << std::endl;
+        printf("result[%s]\n", result.c_str());
+    }
+
+
+    return json_t();
 }
 
-std::string static http_request_octet(const std::string& authorization, const std::string& url, std::string& out_redirectUrl, bool verbose)
+static std::string http_request_octet(const std::string& authorization, const std::string& url, std::string& out_redirectUrl, bool verbose)
 {
     return http_request(authorization, url, "application/octet-stream", out_redirectUrl, verbose);
 }
@@ -74,8 +89,15 @@ std::string static http_request_octet(const std::string& authorization, const st
 //-- GitApiFilesystem
 //--
 
+vertualfs::GitApiFilesystem::GitApiFilesystem()
+{
 
+}
 
+vertualfs::GitApiFilesystem::~GitApiFilesystem()
+{
+
+}
 
 bool vertualfs::GitApiFilesystem::cd(const std::filesystem::path& relativepath)
 {
@@ -92,22 +114,17 @@ bool vertualfs::GitApiFilesystem::ls(std::vector<std::pair<std::string, bool>>& 
     return false;
 }
 
+vertualfs::GitApiFilesystem* vertualfs::GitApiFilesystem::create()
+{
+    std::string url = "https://api.github.com/repos/billyzelsnack/vertualfs/contents";
+    std::string redirectUrl;
+    json_t json = http_request_json("", url, redirectUrl, true);
+    printf("redirectUrl[%s]\n", redirectUrl.c_str());
+    if (json.empty()) { return nullptr; }
+    printf("[%s]\n", json.dump(4).c_str());
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return new GitApiFilesystem();
+}
 
 
 
