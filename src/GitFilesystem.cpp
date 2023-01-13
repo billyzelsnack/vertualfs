@@ -1,5 +1,5 @@
 
-#include "vertualfs/Filesystem.hpp"
+#include "vertualfs/GitFilesystem.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -16,18 +16,18 @@ static bool started = false;
 
 
 
-vertualfs::Filesystem::Filesystem(git_repository* repository, git_commit* commit) : repository(repository), commit(commit)
+vertualfs::GitFilesystem::GitFilesystem(git_repository* repository, git_commit* commit) : repository(repository), commit(commit)
 {
 
 }
 
-vertualfs::Filesystem::~Filesystem()
+vertualfs::GitFilesystem::~GitFilesystem()
 {
 	git_commit_free(commit);
 	git_repository_free(repository);
 }
 
-bool vertualfs::Filesystem::repo_version(std::string& out_version) const
+bool vertualfs::GitFilesystem::repo_version(std::string& out_version) const
 {
 	git_describe_options describe_options;
 	memset(&describe_options, 0, sizeof(describe_options));
@@ -52,7 +52,7 @@ bool vertualfs::Filesystem::repo_version(std::string& out_version) const
 }
 
 
-bool vertualfs::Filesystem::listing(const std::filesystem::path& path, std::vector<std::pair<std::string, bool>>& out_listing)
+bool vertualfs::GitFilesystem::listing(const std::filesystem::path& path, std::vector<std::pair<std::string, bool>>& out_listing)
 {	
 	out_listing.clear();
 
@@ -110,13 +110,13 @@ bool vertualfs::Filesystem::listing(const std::filesystem::path& path, std::vect
 	return true;
 }
 
-bool vertualfs::Filesystem::ls(std::vector<std::pair<std::string, bool>>& out_listing)
+bool vertualfs::GitFilesystem::ls(std::vector<std::pair<std::string, bool>>& out_listing)
 {
 	if (!listing(cwd.string(), out_listing)) { return false; }
 	return true;
 }
 
-bool vertualfs::Filesystem::cd(const std::filesystem::path& relativepath)                          
+bool vertualfs::GitFilesystem::cd(const std::filesystem::path& relativepath)
 {
 	std::filesystem::path newcwd = cwd.append(relativepath.string());
 	cwd = newcwd;
@@ -125,11 +125,11 @@ bool vertualfs::Filesystem::cd(const std::filesystem::path& relativepath)
 	return true;
 }
 
-vertualfs::Filesystem* vertualfs::Filesystem::create(const std::string& path)
+vertualfs::GitFilesystem* vertualfs::GitFilesystem::create(const std::string& path)
 {
 	if (!started) { return nullptr; }
 
-	std::string openpath = vertualfs::Filesystem_CreateLocalPath(path);
+	std::string openpath = vertualfs::GitFilesystem_CreateLocalPath(path);
 
 	std::filesystem::path stdpath(path);
 	stdpath.replace_extension(); //-- unify to never having the .git extension
@@ -162,10 +162,10 @@ vertualfs::Filesystem* vertualfs::Filesystem::create(const std::string& path)
 		return nullptr;
 	}
 
-	return new vertualfs::Filesystem(repo, commit);
+	return new vertualfs::GitFilesystem(repo, commit);
 }
 
-bool vertualfs::Filesystem::lookup_remote_url(const std::string& name, std::string& out_url) const
+bool vertualfs::GitFilesystem::lookup_remote_url(const std::string& name, std::string& out_url) const
 {
 	out_url.clear();
 
@@ -179,7 +179,7 @@ bool vertualfs::Filesystem::lookup_remote_url(const std::string& name, std::stri
 
 
 
-std::string vertualfs::Filesystem_CreateLocalPath(const std::string& url)
+std::string vertualfs::GitFilesystem_CreateLocalPath(const std::string& url)
 {
 	std::filesystem::path stdpath(url);
 	stdpath.replace_extension(); //-- unify to never having the .git extension
@@ -221,7 +221,7 @@ std::string vertualfs::Filesystem_CreateLocalPath(const std::string& url)
 
 
 
-void vertualfs::Filesystem_Shutdown()
+void vertualfs::GitFilesystem_Shutdown()
 {
 	if (!started) { return; }
 
@@ -231,7 +231,7 @@ void vertualfs::Filesystem_Shutdown()
 	return;
 }
 
-bool vertualfs::Filesystem_Startup()
+bool vertualfs::GitFilesystem_Startup()
 {
 	if (started) { return true; }
 

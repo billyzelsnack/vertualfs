@@ -11,7 +11,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-#include <vertualfs/Filesystem.hpp>
+#include <vertualfs/GitFilesystem.hpp>
 #include <vertualfs/vertualfs.hpp>
 
 
@@ -126,7 +126,7 @@ std::string listingbrowser(const std::vector<std::tuple<std::string,bool>>& list
 }
 
 //-- rootname should be computed and not passed in
-void filesystembrowser(const std::string& rootname, vertualfs::Filesystem* filesystem)
+void filesystembrowser(const std::string& rootname, vertualfs::GitFilesystem* filesystem)
 {
     std::vector<std::pair<std::string, bool>> listing;
     filesystem->ls(listing);
@@ -183,7 +183,7 @@ void filesystembrowser(const std::string& rootname, vertualfs::Filesystem* files
         if(filesystem->lookup_remote_url("origin", remoteurl))
         {
             std::string localpath = filesystem->cwd.string();
-            localpath=vertualfs::Filesystem_CreateLocalPath(remoteurl)+localpath+"/"+gselectedfiles[filesystem->cwd];
+            localpath=vertualfs::GitFilesystem_CreateLocalPath(remoteurl)+localpath+"/"+gselectedfiles[filesystem->cwd];
             //printf("[%s]\n", localpath.c_str());
             ImGui::Separator();
             fileviewer(localpath);
@@ -201,7 +201,7 @@ int mainwin(int argc, const char**, GLFWwindow* window)
     if (!vertualfs_startup()) { return EXIT_FAILURE; }
 
     std::filesystem::path repositoryurl = "https://gitlab.com/telemotor/users/billy/headtest";
-    vertualfs::Filesystem* filesystem=vertualfs::Filesystem::create(repositoryurl.string());
+    vertualfs::GitFilesystem* filesystem=vertualfs::GitFilesystem::create(repositoryurl.string());
     std::string nextrepositoryurl = repositoryurl.string();
 
     while (!glfwWindowShouldClose(window))
@@ -229,7 +229,7 @@ int mainwin(int argc, const char**, GLFWwindow* window)
             nextrepositoryurl = buffer;
             repositoryurl = nextrepositoryurl;
             delete filesystem;
-            filesystem = vertualfs::Filesystem::create(repositoryurl.string());
+            filesystem = vertualfs::GitFilesystem::create(repositoryurl.string());
         }
         ImGui::PopItemWidth();
         ImGui::End();

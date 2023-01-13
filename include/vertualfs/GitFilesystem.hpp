@@ -1,6 +1,6 @@
 
-#ifndef VERTUALFS_FILESYSTEM_HPP
-#define VERTUALFS_FILESYSTEM_HPP
+#ifndef VERTUALFS_GITFILESYSTEM_HPP
+#define VERTUALFS_GITFILESYSTEM_HPP
 
 
 #include<filesystem>
@@ -14,19 +14,19 @@ struct git_tree;
 
 namespace vertualfs
 {
-	class  Filesystem;
+	class  GitFilesystem;
 }
 
-class vertualfs::Filesystem
+class vertualfs::GitFilesystem
 {
 
 private:
 
-	Filesystem( git_repository* repository, git_commit* commit );
+	GitFilesystem( git_repository* repository, git_commit* commit );
 
 public:
 
-	~Filesystem();
+	~GitFilesystem();
 
 public:
 
@@ -37,7 +37,7 @@ public:
 	bool ls(std::vector<std::pair<std::string, bool>>& out_listing);
 	bool cd(const std::filesystem::path& relativepath);
 
-	static vertualfs::Filesystem* create(const std::string& path);
+	static vertualfs::GitFilesystem* create(const std::string& path);
 
 public:
 
@@ -49,9 +49,9 @@ public:
 
 namespace vertualfs
 {
-	std::string Filesystem_CreateLocalPath(const std::string& url);
-	void Filesystem_Shutdown();
-	bool Filesystem_Startup();
+	std::string GitFilesystem_CreateLocalPath(const std::string& url);
+	void GitFilesystem_Shutdown();
+	bool GitFilesystem_Startup();
 }
 
 

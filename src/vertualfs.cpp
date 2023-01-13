@@ -1,6 +1,6 @@
 
 #include "vertualfs/vertualfs.hpp"
-#include "vertualfs/Filesystem.hpp"
+#include "vertualfs/GitFilesystem.hpp"
 
 
 
@@ -14,7 +14,7 @@ bool vertualfs_startup()
 {
 	if(started){ return true; }
 
-	if(!vertualfs::Filesystem_Startup()){return false;}
+	if(!vertualfs::GitFilesystem_Startup()){return false;}
 	started = true;
 
 	return true;
@@ -24,7 +24,7 @@ void vertualfs_shutdown()
 {
 	if (!started) { return; }
 
-	vertualfs::Filesystem_Shutdown();
+	vertualfs::GitFilesystem_Shutdown();
 }
 
 
