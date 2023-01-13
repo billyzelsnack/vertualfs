@@ -69,7 +69,7 @@ workspace "vertualfs"
       objdir "%{_ACTION}/%{cfg.buildcfg}/int_x64/"
       targetdir "%{_ACTION}/%{cfg.buildcfg}/out_x64/"
       debugdir  "%{_ACTION}/%{cfg.buildcfg}/out_x64/"
-      links { "vertualfs", "git2", "pcre", "zlib", "imgui", "glfw3dll", "opengl32" }
+      links { "vertualfs", "git2", "pcre", "zlib", "imgui", "glfw3dll", "opengl32", "curlpp", "libcurl"  }
       
       postbuildcommands 
       {

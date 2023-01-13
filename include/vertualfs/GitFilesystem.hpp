@@ -2,6 +2,7 @@
 #ifndef VERTUALFS_GITFILESYSTEM_HPP
 #define VERTUALFS_GITFILESYSTEM_HPP
 
+#include "Filesystem.hpp"
 
 #include<filesystem>
 #include<string>
@@ -17,7 +18,7 @@ namespace vertualfs
 	class  GitFilesystem;
 }
 
-class vertualfs::GitFilesystem
+class vertualfs::GitFilesystem : public Filesystem
 {
 
 private:
@@ -30,16 +31,20 @@ public:
 
 public:
 
-	bool listing(const std::filesystem::path& path, std::vector<std::pair<std::string, bool>>& out_listing);
+	bool cd(const std::filesystem::path& relativepath) override;
+	bool listing(const std::filesystem::path& path, std::vector<std::pair<std::string, bool>>& out_listing) override;
+	bool ls(std::vector<std::pair<std::string, bool>>& out_listing) override;
+
+public:
+
 	bool repo_version(std::string& out_version) const;
 	bool lookup_remote_url(const std::string& name, std::string& out_url) const;
 
-	bool ls(std::vector<std::pair<std::string, bool>>& out_listing);
-	bool cd(const std::filesystem::path& relativepath);
+public:
 
 	static vertualfs::GitFilesystem* create(const std::string& path);
 
-public:
+public: //-- todo: make accessors so these can be private
 
 	git_repository* repository = nullptr;
 	git_commit* commit = nullptr;
