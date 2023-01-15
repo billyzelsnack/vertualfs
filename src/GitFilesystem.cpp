@@ -1,5 +1,7 @@
 
 #include "vertualfs/GitFilesystem.hpp"
+#include "vertualfs/vertualfs.hpp"
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -8,17 +10,55 @@
 #include <git2.h>
 
 
+
+
 static bool started = false;
 
 
 
-//-- after an open need to check if the remote has changed
+//-- after an open need to check if the remote has changed (do a pull for instance)
 
 
 
-vertualfs::GitFilesystem::GitFilesystem(git_repository* repository, git_commit* commit) : repository(repository), commit(commit)
+static std::filesystem::path CreateLocalPath(const std::filesystem::path& url)
 {
+	std::filesystem::path unipath(url);
+	unipath.replace_extension(); //-- unify to never having the .git extension
+	std::filesystem::path remoteurl = unipath;
 
+	std::string protocol = unipath.root_name().string();
+	std::string domain = unipath.root_directory().string();
+	std::regex url_regex("(https?)://([^/]+)(.*)");
+	std::smatch url_match;
+	std::string wtf(remoteurl.string());
+	if (std::regex_match(wtf, url_match, url_regex))
+	{
+		protocol = url_match[1];
+		domain = url_match[2];
+		std::string modpath = remoteurl.string();
+		modpath.erase(0, protocol.length() + 2 + domain.length() + 1);
+		unipath = std::filesystem::path(modpath);
+	}
+	else
+	{
+		domain = protocol;
+	}
+	domain.erase(std::remove(domain.begin(), domain.end(), ':'), domain.end());
+
+	std::filesystem::path openpath = "vertualfs";
+	if (!domain.empty()) { openpath += "/" + domain; }
+	openpath /= "/" / unipath.relative_path();
+
+	return openpath;
+}
+
+
+
+
+
+vertualfs::GitFilesystem::GitFilesystem(const std::filesystem::path& baseurl, git_repository* repository, git_commit* commit) : fsbaseurl(baseurl), repository(repository), commit(commit)
+{
+	fscwd = vertualfs::make_preferred("/");
 }
 
 vertualfs::GitFilesystem::~GitFilesystem()
@@ -51,6 +91,15 @@ bool vertualfs::GitFilesystem::repo_version(std::string& out_version) const
 	return false;
 }
 
+std::filesystem::path vertualfs::GitFilesystem::baseurl() const
+{
+	return fsbaseurl;
+}
+
+std::filesystem::path vertualfs::GitFilesystem::cwd() const
+{
+	return fscwd;
+}
 
 bool vertualfs::GitFilesystem::listing(const std::filesystem::path& path, std::vector<std::pair<std::string, bool>>& out_listing)
 {	
@@ -112,38 +161,62 @@ bool vertualfs::GitFilesystem::listing(const std::filesystem::path& path, std::v
 
 bool vertualfs::GitFilesystem::ls(std::vector<std::pair<std::string, bool>>& out_listing)
 {
-	if (!listing(cwd.string(), out_listing)) { return false; }
+	if (!listing(fscwd, out_listing)) { return false; }
 	return true;
 }
 
-bool vertualfs::GitFilesystem::cd(const std::filesystem::path& relativepath)
+bool vertualfs::GitFilesystem::cd(const std::filesystem::path& path)
 {
-	std::filesystem::path newcwd = cwd.append(relativepath.string());
-	cwd = newcwd;
-
+	std::filesystem::path pathmp(path);
+	printf("cd [%s][%s]\n", fscwd.string().c_str(), pathmp.string().c_str());
+	if (path.has_root_directory())
+	{
+		fscwd = pathmp;
+		return true;
+	}
+	printf("cd [%s][%s]\n", fscwd.string().c_str(), pathmp.string().c_str());
+	pathmp = pathmp.relative_path();
+	printf("cd(relative_path)[%s][%s]\n", fscwd.string().c_str(), pathmp.string().c_str());
+	printf("fscwd:\n");
+	vertualfs::print_path(fscwd);
+	printf("path:\n");
+	vertualfs::print_path(pathmp);
+	fscwd = fscwd/path;
+	printf("newfscwd:\n");
+	vertualfs::print_path(fscwd);
 
 	return true;
 }
 
-vertualfs::GitFilesystem* vertualfs::GitFilesystem::create(const std::string& path)
+bool vertualfs::GitFilesystem::lookupurl(const std::filesystem::path& path, std::filesystem::path& out_url) const
+{
+	std::filesystem::path remoteurl;
+	if (!lookup_remote_url("origin", remoteurl)) { return false; }
+
+	out_url=CreateLocalPath(remoteurl)/fscwd/path;
+	//printf("out_url[%s]\n", out_url.string().c_str());
+	return true;
+}
+
+vertualfs::GitFilesystem* vertualfs::GitFilesystem::create(const std::filesystem::path& baseurl)
 {
 	if (!started) { return nullptr; }
 
-	std::string openpath = vertualfs::GitFilesystem_CreateLocalPath(path);
+	std::filesystem::path openpath = CreateLocalPath(baseurl);
 
-	std::filesystem::path stdpath(path);
-	stdpath.replace_extension(); //-- unify to never having the .git extension
-	std::string remoteurl = stdpath.string();
+	std::filesystem::path unipath(baseurl);
+	unipath.replace_extension(); //-- unify to never having the .git extension
+	std::filesystem::path remoteurl = unipath;
 
 	//printf("[%s] [%s]\n", remoteurl.c_str(), openpath.c_str());
 	//return nullptr;
 
 	git_repository* repo = nullptr;
-	printf("attempt git_repository_open [%s]\n", openpath.c_str());
-	if (0 != git_repository_open(&repo, openpath.c_str()))
+	printf("attempt git_repository_open [%s]\n", openpath.string().c_str());
+	if (0 != git_repository_open(&repo, openpath.string().c_str()))
 	{
-		printf("attempt git_repository_clone [%s] to [%s]\n", remoteurl.c_str(), openpath.c_str());
-		if (0 != git_clone(&repo, remoteurl.c_str(), openpath.c_str(), nullptr))
+		printf("attempt git_repository_clone [%s] to [%s]\n", remoteurl.string().c_str(), openpath.string().c_str());
+		if (0 != git_clone(&repo, remoteurl.string().c_str(), openpath.string().c_str(), nullptr))
 		{
 			const git_error* error = git_error_last();
 			printf("Error: %s\n", error->message);
@@ -162,61 +235,20 @@ vertualfs::GitFilesystem* vertualfs::GitFilesystem::create(const std::string& pa
 		return nullptr;
 	}
 
-	return new vertualfs::GitFilesystem(repo, commit);
+	return new vertualfs::GitFilesystem(baseurl, repo, commit);
 }
 
-bool vertualfs::GitFilesystem::lookup_remote_url(const std::string& name, std::string& out_url) const
+bool vertualfs::GitFilesystem::lookup_remote_url(const std::string& name, std::filesystem::path& out_url) const
 {
 	out_url.clear();
 
 	git_remote* remote = nullptr;
 	if(0!=git_remote_lookup(&remote, repository, name.c_str())){return false;}
-	out_url=std::string(git_remote_url(remote));
+	out_url=std::filesystem::path(git_remote_url(remote));
 	git_remote_free(remote);
 
 	return true;
 }
-
-
-
-std::string vertualfs::GitFilesystem_CreateLocalPath(const std::string& url)
-{
-	std::filesystem::path stdpath(url);
-	stdpath.replace_extension(); //-- unify to never having the .git extension
-	std::string remoteurl = stdpath.string();
-
-	std::string protocol = stdpath.root_name().string();
-	std::string domain = stdpath.root_directory().string();
-	std::regex url_regex("(https?)://([^/]+)(.*)");
-	std::smatch url_match;
-	if (std::regex_match(remoteurl, url_match, url_regex))
-	{
-		protocol = url_match[1];
-		domain = url_match[2];
-		std::string modpath = remoteurl;
-		modpath.erase(0, protocol.length() + 2 + domain.length() + 1);
-		stdpath = std::filesystem::path(modpath);
-	}
-	else
-	{
-		domain = protocol;
-		//domain.erase(std::remove(domain.begin(), domain.end(), ':'), domain.end());
-	}
-	domain.erase(std::remove(domain.begin(), domain.end(), ':'), domain.end());
-	//std::cout << "Protocol: " << protocol << std::endl;
-	//std::cout << "Domain: " << domain << std::endl;
-	//std::cout << "Path: " << stdpath.relative_path() << std::endl;
-	//std::cout << "Filename: " << stdpath.filename() << std::endl;
-	//std::cout << "Filename stem: " << stdpath.stem() << std::endl;
-	//std::cout << "Filename extension: " << stdpath.extension() << std::endl;
-
-	std::string openpath = "vertualfs";
-	if (!domain.empty()) { openpath += "/" + domain; }
-	openpath += "/" + stdpath.relative_path().string();
-
-	return openpath;
-}
-
 
 
 

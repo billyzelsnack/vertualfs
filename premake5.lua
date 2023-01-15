@@ -52,7 +52,7 @@ workspace "vertualfs"
       language "C++"
       cppdialect "C++20"
       
-      defines { }
+      defines { "VERTUALFSDEMO_WINDOWING_GLFW" }
       includedirs 
       { 
          vcpkgdir.."installed/x64-windows/include", 
