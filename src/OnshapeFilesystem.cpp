@@ -1,40 +1,39 @@
 
 
-#include "vertualfs/GitApiFilesystem.hpp"
+#include "vertualfs/OnshapeFilesystem.hpp"
 #include "http.hpp"
-
-#include <nlohmann/json.hpp>
 #include <vertualfs/vertualfs.hpp>
+
 
 using json_t = nlohmann::json;
 
 
 
-vertualfs::GitApiFilesystem::GitApiFilesystem(const std::filesystem::path& baseurl) : fsbaseurl(baseurl)
+vertualfs::OnshapeFilesystem::OnshapeFilesystem(const std::filesystem::path& baseurl) : fsbaseurl(baseurl)
 {
 
 }
 
-vertualfs::GitApiFilesystem::~GitApiFilesystem()
+vertualfs::OnshapeFilesystem::~OnshapeFilesystem()
 {
 
 }
 
-std::filesystem::path vertualfs::GitApiFilesystem::baseurl() const
+std::filesystem::path vertualfs::OnshapeFilesystem::baseurl() const
 {
     return fsbaseurl;
 }
 
-std::filesystem::path vertualfs::GitApiFilesystem::cwd() const
+std::filesystem::path vertualfs::OnshapeFilesystem::cwd() const
 {
     return fscwd;
 }
 
-bool vertualfs::GitApiFilesystem::cd(const std::filesystem::path& path)
+bool vertualfs::OnshapeFilesystem::cd(const std::filesystem::path& path)
 {
     std::filesystem::path pathmp(path);
     printf("cd [%s][%s]\n", fscwd.string().c_str(), pathmp.string().c_str());
-    if(path.has_root_directory())
+    if (path.has_root_directory())
     {
         fscwd = pathmp;
     }
@@ -70,7 +69,7 @@ bool vertualfs::GitApiFilesystem::cd(const std::filesystem::path& path)
     return true;
 }
 
-bool vertualfs::GitApiFilesystem::listing(const std::filesystem::path& path, std::vector<std::pair<std::string, bool>>& out_listing)
+bool vertualfs::OnshapeFilesystem::listing(const std::filesystem::path& path, std::vector<std::pair<std::string, bool>>& out_listing)
 {
     //-- todo: only paths that start from root are valid
     if (path != fscwd)
@@ -78,50 +77,37 @@ bool vertualfs::GitApiFilesystem::listing(const std::filesystem::path& path, std
         printf("listingcd[%s][%s]\n", fscwd.string().c_str(), path.string().c_str());
         if (!cd(path)) { return false; }
     }
-    
-    //printf("[%s]\n", fscwdjson.dump(4).c_str());
-    
-    for (auto& element : fscwdjson)
-    {
-        try
-        {
-            std::string name = element["name"].get<std::string>();
-            std::string type = element["type"].get<std::string>();
 
-            out_listing.push_back({ name, type == "dir" });
-            //printf("[%s][%s]\n", name.c_str(), type.c_str());
-        }
-        catch (...) {}
-    }
-    
     return true;
 }
 
-bool vertualfs::GitApiFilesystem::ls(std::vector<std::pair<std::string, bool>>& out_listing)
+bool vertualfs::OnshapeFilesystem::ls(std::vector<std::pair<std::string, bool>>& out_listing)
 {
-    return listing(fscwd,out_listing);
+    return listing(fscwd, out_listing);
 }
 
-bool vertualfs::GitApiFilesystem::lookupurl(const std::filesystem::path& path, std::filesystem::path& out_url) const
+bool vertualfs::OnshapeFilesystem::lookupurl(const std::filesystem::path& path, std::filesystem::path& out_url) const
 {
     printf("lookupurl[%s][%s]\n", fscwd.string().c_str(), path.string().c_str());
 
     return false;
 }
 
-vertualfs::GitApiFilesystem* vertualfs::GitApiFilesystem::create(const std::filesystem::path& baseurl)
-{   
-    vertualfs::GitApiFilesystem* filesystem=new GitApiFilesystem(baseurl);
-    if(filesystem == nullptr){ return nullptr; }
+vertualfs::OnshapeFilesystem* vertualfs::OnshapeFilesystem::create(const std::filesystem::path& baseurl)
+{
+    vertualfs::OnshapeFilesystem* filesystem = new OnshapeFilesystem(baseurl);
+    if (filesystem == nullptr) { return nullptr; }
 
-    if(!filesystem->cd(""))
+    if (!filesystem->cd("/"))
     {
         delete filesystem;
         return nullptr;
     }
-    
+
     return filesystem;
 }
+
+
 
 
 

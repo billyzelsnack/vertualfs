@@ -1,6 +1,6 @@
 
-#ifndef VERTUALFS_GITAPIFILESYSTEM_HPP
-#define VERTUALFS_GITAPIFILESYSTEM_HPP
+#ifndef VERTUALFS_ONSHAPEFILESYSTEM_HPP
+#define VERTUALFS_ONSHAPEFILESYSTEM_HPP
 
 #include "vertualfs/Filesystem.hpp"
 
@@ -12,20 +12,20 @@ using json_t = nlohmann::json;
 
 namespace vertualfs
 {
-	class  GitApiFilesystem;
+	class  OnshapeFilesystem;
 }
 
 
-class vertualfs::GitApiFilesystem : public vertualfs::Filesystem
+class vertualfs::OnshapeFilesystem : public vertualfs::Filesystem
 {
 
 private:
 
-	GitApiFilesystem(const std::filesystem::path& baseurl);
+	OnshapeFilesystem(const std::filesystem::path& baseurl);
 
 public:
 
-	virtual ~GitApiFilesystem();
+	virtual ~OnshapeFilesystem();
 
 public:
 
@@ -36,7 +36,7 @@ public:
 	virtual bool ls(std::vector<std::pair<std::string, bool>>& out_listing) override;
 	virtual bool lookupurl(const std::filesystem::path& path, std::filesystem::path& out_url) const override;
 
-	static vertualfs::GitApiFilesystem* create(const std::filesystem::path& baseurl);
+	static vertualfs::OnshapeFilesystem* create(const std::filesystem::path& baseurl);
 
 private:
 
@@ -48,4 +48,5 @@ private:
 
 
 #endif
+
 
