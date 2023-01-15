@@ -17,7 +17,7 @@ using json_t = nlohmann::json;
 
 
 
-std::string vertualfs::http_request(const std::string& authorization, const std::string& url, const std::string& accept, std::string& out_redirectUrl, bool verbose)
+std::string vertualfs::http_request(const std::string& authorization, const std::string& url, const std::string& accept, const json_t& jsonpostfields, std::string& out_redirectUrl, bool verbose)
 {
     out_redirectUrl.clear();
 
@@ -29,6 +29,9 @@ std::string vertualfs::http_request(const std::string& authorization, const std:
 
         std::list<std::string> header;
         header.push_back("User-Agent: vertualfs");
+
+        header.push_back("Content-Type: application/json");
+
         if (!authorization.empty()) { header.push_back("Authorization: " + authorization); }
         if (!accept.empty()) { header.push_back("Accept: " + accept); }
         request.setOpt(curlpp::options::HttpHeader(header));
@@ -36,6 +39,13 @@ std::string vertualfs::http_request(const std::string& authorization, const std:
         request.setOpt(curlpp::options::Verbose(verbose));
         request.setOpt(curlpp::options::WriteStream(&stream));
         request.setOpt(curlpp::options::FollowLocation(false));
+        if (!jsonpostfields.empty())
+        {
+            std::string dump = jsonpostfields.dump();
+            request.setOpt(curlpp::options::PostFields(dump));
+            request.setOpt(curlpp::options::PostFieldSize((int)dump.size()));
+        }
+
         request.perform();
 
         const char* redirectUrl = curlpp::Info<CURLINFO_REDIRECT_URL, const char*>::get(request);
@@ -53,9 +63,9 @@ std::string vertualfs::http_request(const std::string& authorization, const std:
     return stream.str();
 }
 
-json_t vertualfs::http_request_json(const std::string authorization, const std::string& url, std::string& out_redirectUrl, bool verbose)
+json_t vertualfs::http_request_json(const std::string authorization, const std::string& url, const json_t& jsonpostfields, std::string& out_redirectUrl, bool verbose)
 {
-    std::string result = vertualfs::http_request(authorization, url, "application/json;charset=UTF-8;qs=0.09", out_redirectUrl, verbose);
+    std::string result = vertualfs::http_request(authorization, url, "application/json;charset=UTF-8;qs=0.09", jsonpostfields, out_redirectUrl, verbose);
     //std::string result = http_request(authorization, url, "application/vnd.github+json", out_redirectUrl, verbose);
     if (result.empty()) { return json_t(); }
 
@@ -76,6 +86,6 @@ json_t vertualfs::http_request_json(const std::string authorization, const std::
 
 std::string vertualfs::http_request_octet(const std::string& authorization, const std::string& url, std::string& out_redirectUrl, bool verbose)
 {
-    return vertualfs::http_request(authorization, url, "application/octet-stream", out_redirectUrl, verbose);
+    return vertualfs::http_request(authorization, url, "application/octet-stream", json_t(), out_redirectUrl, verbose);
 }
 

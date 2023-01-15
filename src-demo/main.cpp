@@ -12,6 +12,7 @@
 #include <vertualfs/Filesystem.hpp>
 #include <vertualfs/GitApiFilesystem.hpp>
 #include <vertualfs/GitFilesystem.hpp>
+#include <vertualfs/OpenaiFilesystem.hpp>
 #include <vertualfs/vertualfs.hpp>
 
 //-- todo: ensure that paths and urls are using std::filesystem::url instead and not std::string
@@ -189,11 +190,21 @@ void filesystembrowser(vertualfs::Filesystem* filesystem)
 
 
 
+static std::string environmentvariable(const std::string& key)
+{
+    const char* value= getenv(key.c_str());
+    if (value == nullptr) { return ""; }
+    return value;
+}
+
 
 int windowing_main(int argc, const char**)
 {
     int filesystemtypeindex = 0;
-    const char* filesystemtypes[] = { "GitApiFilesystem", "GitFilesystem" };
+    const char* filesystemtypes[] = { "GitApiFilesystem", "GitFilesystem", "OnshapeFilesystem", "OpenaiFilesystem" };
+
+    std::string openai_secret_key = environmentvariable("OPENAI_SECRET_KEY");
+
 
     if (!vertualfs::startup()) { return EXIT_FAILURE; }
 
@@ -201,6 +212,7 @@ int windowing_main(int argc, const char**)
     baseurlhistory.push_back({"GitFilesystem",   "https://gitlab.com/telemotor/users/billy/headtest"});
     baseurlhistory.push_back({"GitFilesystem",   "https://github.com/billyzelsnack/vertualfs"});
     baseurlhistory.push_back({"GitApiFilesystem","https://api.github.com/repos/billyzelsnack/vertualfs"});
+    baseurlhistory.push_back({"OpenaiFilesystem","https://api.openai.com/v1/engines/text-davinci-003/completions" });
 
     std::filesystem::path baseurl;
     vertualfs::Filesystem* filesystem = nullptr;
@@ -287,6 +299,11 @@ int windowing_main(int argc, const char**)
             if(filesystemtype=="GitApiFilesystem")
             {
                 filesystem = vertualfs::GitApiFilesystem::create(baseurl);
+            }
+            else
+            if (filesystemtype == "OpenaiFilesystem")
+            {
+                filesystem = vertualfs::OpenaiFilesystem::create(openai_secret_key,baseurl);
             }
         }
         ImGui::PopItemWidth();

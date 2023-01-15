@@ -47,7 +47,7 @@ bool vertualfs::GitApiFilesystem::cd(const std::filesystem::path& path)
     printf("apiurl[%s]\n", apiurl.string().c_str());
 
     std::string redirectUrl;
-    fscwdjson = http_request_json("", apiurl.string(), redirectUrl, false);
+    fscwdjson = http_request_json("", apiurl.string(), json_t(), redirectUrl, false);
     printf("redirectUrl[%s]\n", redirectUrl.c_str());
     if (fscwdjson.empty()) { return false; }
 
